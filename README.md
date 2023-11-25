@@ -2,6 +2,8 @@
 
 A new Flutter project.
 
+By - Aishwarya and Harika
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
