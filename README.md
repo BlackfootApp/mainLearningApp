@@ -2,7 +2,7 @@
 
 A new Flutter project.
 
-By - Aishwarya and Harika
+### By - Aishwarya and Harika
 
 ## Getting Started
 
