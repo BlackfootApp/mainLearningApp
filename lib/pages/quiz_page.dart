@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 class QuizPage extends StatefulWidget {
@@ -9,30 +8,42 @@ class QuizPage extends StatefulWidget {
   _QuizPageState createState() => _QuizPageState();
 }
 
-class _QuizPageState extends State<QuizPage> {
+class _QuizPageState extends State<QuizPage> with TickerProviderStateMixin {
   int _timerSeconds = 20;
   int _currentIndex = 0;
+  late Timer _timer;
+  late AnimationController _controller;
+  late Animation<double> _animation;
 
   List<Question> questions = [
     Question("What's your name?", "Tsá kitáánikko?",
         ["Option 1", "Tsá kitáánikko?", "Option 3", "Option 4"]),
-    // Add other questions here
   ];
+
+  bool _shouldPauseTimer = false;
 
   @override
   void initState() {
     super.initState();
     startTimer();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: _timerSeconds),
+    )..addListener(() {
+        setState(() {});
+      });
+
+    _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
+    _controller.forward();
   }
 
   void startTimer() {
     const oneSecond = Duration(seconds: 1);
-    Timer.periodic(oneSecond, (timer) {
+    _timer = Timer.periodic(oneSecond, (timer) {
       if (_timerSeconds == 0) {
-        // Time is up, handle accordingly (e.g., mark the question as incorrect)
         timer.cancel();
         nextQuestion();
-      } else {
+      } else if (!_shouldPauseTimer) {
         setState(() {
           _timerSeconds--;
         });
@@ -41,31 +52,94 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   void nextQuestion() {
-    // Handle what to do when the timer reaches 0
-    // For now, let's just move to the next question
     setState(() {
       _currentIndex++;
       if (_currentIndex < questions.length) {
         _timerSeconds = 20;
+        _controller.reset();
+        _controller.forward();
         startTimer();
-      } else {
-        // All questions are done
-        // You may want to navigate to the results screen or perform any other action
-      }
+      } else {}
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Practice Section'),
+  void dispose() {
+    _timer.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<bool> _onBackPressed() async {
+    // Pause the timer
+    _shouldPauseTimer = true;
+
+    // Show exit dialog
+    bool shouldExit = await showDialog(
+      context: context,
+      barrierDismissible: false, // prevent tapping outside to dismiss
+      builder: (context) => AlertDialog(
+        title: Text("Exit Quiz?"),
+        content: Text("Are you sure you want to exit the quiz?"),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              // Cancel the timer and navigate back
+              _timer.cancel();
+              _shouldPauseTimer = false;
+              Navigator.of(context).pop(true);
+            },
+            child: Text("Yes"),
+          ),
+          TextButton(
+            onPressed: () {
+              // Resume the timer
+              _shouldPauseTimer = false;
+              Navigator.of(context).pop(false);
+            },
+            child: Text("No"),
+          ),
+        ],
       ),
-      body: _currentIndex < questions.length
-          ? buildQuestionCard(questions[_currentIndex])
-          : Center(
-              child: Text('Quiz Completed!'),
-            ),
+    );
+
+    // Returning shouldExit to determine whether to pop or not
+    return shouldExit;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: _onBackPressed,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Quiz'),
+          backgroundColor: Colors.deepPurple,
+        ),
+        body: _currentIndex < questions.length
+            ? buildQuestionCard(questions[_currentIndex])
+            : Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Quiz Completed!',
+                      style: TextStyle(
+                        fontSize: 30.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepPurple,
+                      ),
+                    ),
+                    SizedBox(height: 20.0),
+                    Icon(
+                      Icons.done_all,
+                      size: 60.0,
+                      color: Colors.deepPurple,
+                    ),
+                  ],
+                ),
+              ),
+      ),
     );
   }
 
@@ -79,7 +153,10 @@ class _QuizPageState extends State<QuizPage> {
           children: [
             Text(
               question.questionText,
-              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple),
             ),
             SizedBox(height: 10.0),
             DragTarget<String>(
@@ -93,45 +170,56 @@ class _QuizPageState extends State<QuizPage> {
               },
               onWillAccept: (data) => data == question.correctAnswer,
               onAccept: (data) {
-                // Handle the correct answer here
-                // You may want to update the score or perform any other action
                 print("Selected Answer: $data");
                 nextQuestion();
               },
             ),
             SizedBox(height: 10.0),
-            buildOptionsList(question.options),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: buildOptionsList(question.options),
+            ),
             SizedBox(height: 10.0),
-            Text("Time left: $_timerSeconds seconds"),
+            AnimatedBuilder(
+              animation: _animation,
+              builder: (context, child) {
+                return Transform.rotate(
+                  angle: _animation.value * 2 * 3.1416,
+                  child: Icon(Icons.access_time,
+                      size: 60.0, color: Colors.deepPurple),
+                );
+              },
+            ),
+            SizedBox(height: 10.0),
+            Text(
+              "Time left: $_timerSeconds seconds",
+              style: TextStyle(fontSize: 24.0, color: Colors.deepPurple),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget buildOptionsList(List<String> options) {
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 8.0,
-      children: options
-          .map((option) => Draggable<String>(
-                data: option,
-                child: buildOptionCard(option),
-                feedback: buildOptionCard(option, isDragging: true),
-                childWhenDragging: Container(),
-              ))
-          .toList(),
-    );
+  List<Widget> buildOptionsList(List<String> options) {
+    return options
+        .map((option) => Draggable<String>(
+              data: option,
+              child: buildOptionCard(option),
+              feedback: buildOptionCard(option, isDragging: true),
+              childWhenDragging: Container(),
+            ))
+        .toList();
   }
 
   Widget buildOptionCard(String option, {bool isDragging = false}) {
     return Card(
-      color: isDragging ? Colors.transparent : Colors.purple,
+      color: isDragging ? Colors.transparent : Colors.deepPurple,
       child: Padding(
         padding: EdgeInsets.all(8.0),
         child: Text(
           option,
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(fontSize: 18.0, color: Colors.white),
         ),
       ),
     );
