@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'category_learning_page.dart';
+
 import 'quiz_page.dart';
 
 class FeatureItem extends StatelessWidget {
@@ -58,28 +58,16 @@ class CategoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (title == 'Party Talk') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => LearningPage()),
-          );
-        } else {
-          // Handle other feature items
-        }
-      },
-      child: Container(
-        height: 60,
-        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: ListTile(
-          leading: Icon(icon),
-          title: Text(title),
-        ),
+    return Container(
+      height: 60,
+      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(title),
       ),
     );
   }
@@ -115,7 +103,7 @@ class SentenceHomePage extends StatelessWidget {
             ),
           ),
           Container(
-            height: 120,
+            height: 120, // Increased height to accommodate images and text
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: const [
