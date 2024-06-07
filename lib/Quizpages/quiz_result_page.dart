@@ -1,7 +1,10 @@
+import 'package:audioplayers/audioplayers.dart';
+import 'package:bfootlearn/Phrases/models/question_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../Phrases/provider/blogProvider.dart';
+import '../Phrases/provider/mediaProvider.dart';
 import '../riverpod/river_pod.dart';
+import 'widgets/circular_graph.dart';
 
 class QuizResultScreen extends ConsumerStatefulWidget {
   final int quizScore;
@@ -22,14 +25,16 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
   Widget build(BuildContext context) {
     final theme = ref.watch(themeProvider);
     final screenWidth = MediaQuery.of(context).size.width;
+    late AudioPlayer player = ref.watch(audioPlayerProvider);
 
     return Material(
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
-            onPressed: () {
+            onPressed: () async {
               if (mounted) {
+                player.stop();
                 Navigator.pop(context);
               }
             },
@@ -52,10 +57,9 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
                   ),
                 ),
                 SizedBox(height: screenWidth * 0.04),
-                Icon(
-                  Icons.done_all,
-                  size: screenWidth * 0.15,
-                  color: theme.lightPurple,
+                CircularGraph(
+                  quizScore: widget.quizScore,
+                  totalQuestions: widget.quizQuestions.length,
                 ),
                 SizedBox(height: screenWidth * 0.04),
                 Text(
@@ -86,12 +90,30 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Q${entry.key + 1}: ${entry.value.questionText}',
+                              entry.value.isAudioTypeQuestion
+                                  ? "Q${entry.key + 1}: Match the audio with the corresponding blackfoot text?"
+                                  : 'Q${entry.key + 1}: ${entry.value.questionText.split('|')[0]}',
                               style: TextStyle(
                                 fontSize: screenWidth * 0.04,
                                 color: theme.lightPurple,
                               ),
                             ),
+                            if (entry.value.isAudioTypeQuestion)
+                              SizedBox(height: screenWidth * 0.02),
+                            if (entry.value.isAudioTypeQuestion)
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  playAudio(
+                                      entry.value.questionText.split('|')[1],
+                                      player,
+                                      false);
+                                },
+                                icon: Icon(
+                                  Icons.volume_up,
+                                  color: theme.lightPurple,
+                                ),
+                                label: const Text(''),
+                              ),
                             SizedBox(height: screenWidth * 0.02),
                             if (entry.value.selectedAnswer !=
                                 entry.value.correctAnswer)
