@@ -1,4 +1,5 @@
 import 'package:bfootlearn/Phrases/models/card_data.dart';
+import 'package:bfootlearn/Phrases/services/local_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bfootlearn/Phrases/provider/mediaProvider.dart';
@@ -18,7 +19,6 @@ class SentenceHomePage extends ConsumerStatefulWidget {
 
 class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
   List<Map<String, dynamic>> seriesOptions = [];
-  List<CardData> allData = [];
   List<String> vocabCategory = [];
   late Future<String> _imageUrlFuture;
   String _imageUrl = "";
@@ -32,13 +32,61 @@ class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
   }
 
   Future<void> _fetchPhrasesData() async {
-    final blogProviderObj = ref.read(blogProvider);
     final vProvider = ref.read(vocaProvider);
-    seriesOptions = await blogProviderObj.getSeriesNamesFromFirestore();
-    allData = await blogProviderObj.fetchAllData();
-    blogProviderObj.updateSavedPhrases();
-    vocabCategory = await vProvider.getAllCategories();
-    setState(() {});
+    final blogProvide = ref.read(blogProvider);
+
+    try {
+      // Get the current time and the last fetch time from SQLite
+      int? lastFetchTime = await LocalDatabaseHelper.getLastFetchTime();
+      int currentTime = DateTime.now().millisecondsSinceEpoch;
+
+      // Check if a day has passed since the last fetch or if it's the first fetch
+      if (lastFetchTime == null || (currentTime - lastFetchTime) >= 86400000) {
+        // More than a day has passed or it's the first fetch
+        await LocalDatabaseHelper.clearDatabase();
+
+        // Fetch series names from Firestore
+        List<Map<String, dynamic>> seriesOptions =
+            await blogProvide.getSeriesNamesFromFirestore();
+        for (var series in seriesOptions) {
+          await LocalDatabaseHelper.insertSeries(
+              series['seriesName'], series['iconImage']);
+        }
+
+        // Fetch all data from Firestore
+        List<CardData> allData = await blogProvide.fetchAllData();
+        for (var data in allData) {
+          await LocalDatabaseHelper.insertCardData(data);
+        }
+
+        // Save the current fetch time
+        await LocalDatabaseHelper.insertFetchTime(currentTime);
+      }
+
+      // Fetch series names from SQLite
+      seriesOptions = await LocalDatabaseHelper.getAllSeries();
+      blogProvide.updateSeriesOptions(seriesOptions);
+
+      // Fetch all data from SQLite
+      final allData = await LocalDatabaseHelper.getAllCardData();
+      blogProvide.updateCardDataList(allData.map((data) {
+        return CardData(
+          documentId: data['documentId'],
+          englishText: data['englishText'],
+          blackfootText: data['blackfootText'],
+          blackfootAudio: data['blackfootAudio'],
+          seriesName: data['seriesName'],
+        );
+      }).toList());
+
+      // Update saved phrases and fetch other data
+      await blogProvide.getSavedPhrases();
+      vocabCategory = await vProvider.getAllCategories();
+      setState(() {});
+    } catch (error) {
+      print("Error fetching data: $error");
+      rethrow;
+    }
   }
 
   @override
@@ -70,9 +118,11 @@ class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
                   future: _imageUrlFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
+                      return Center(child: Icon(Icons.image, size: 40));
+                    } else if (snapshot.hasError ||
+                        snapshot.data == null ||
+                        snapshot.data!.isEmpty) {
+                      return Text('Error: Unable to load image');
                     } else {
                       _imageUrl = snapshot.data!;
                       return Image.network(
@@ -151,18 +201,16 @@ class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
                               future: imageUrl,
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const Center(
-                                      child: CircularProgressIndicator());
-                                } else if (snapshot.hasError) {
-                                  return Text('Error: ${snapshot.error}');
+                                        ConnectionState.waiting ||
+                                    snapshot.hasError ||
+                                    snapshot.data == null ||
+                                    snapshot.data!.isEmpty) {
+                                  return CategoryItem(vocabCategory,
+                                      seriesData['seriesName'], '');
                                 } else {
                                   final String downloadUrl = snapshot.data!;
-                                  return CategoryItem(
-                                      vocabCategory,
-                                      seriesData['seriesName'],
-                                      Icons.category,
-                                      downloadUrl);
+                                  return CategoryItem(vocabCategory,
+                                      seriesData['seriesName'], downloadUrl);
                                 }
                               },
                             );
