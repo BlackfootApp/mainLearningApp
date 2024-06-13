@@ -1,15 +1,11 @@
 import 'package:bfootlearn/Home/widgets/bootomnavItems.dart';
-import 'package:bfootlearn/Home/widgets/crad_option.dart';
-import 'package:bfootlearn/Home/widgets/home_page.dart';
 import 'package:bfootlearn/User/user_profile_screen.dart';
-import 'package:bfootlearn/common/bottomnav.dart';
 import 'package:bfootlearn/riverpod/river_pod.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flippy/flippy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flippy/flippy.dart';
+
 import '../../login/views/reset_password.dart';
 import '../../notifications/notification_page.dart';
 
@@ -44,13 +40,13 @@ class HomeViewState extends ConsumerState<HomeView> {
       case 'changePassword':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => PasswordChangePage()),
+          MaterialPageRoute(builder: (context) => const PasswordChangePage()),
         );
         break;
       case 'localNotifications':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => SettingsPage()),
+          MaterialPageRoute(builder: (context) => const SettingsPage()),
         );
         break;
     }
@@ -65,8 +61,10 @@ class HomeViewState extends ConsumerState<HomeView> {
         children: [
           GestureDetector(
             onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => UserProfileScreen()));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const UserProfileScreen()));
             },
             child: CircleAvatar(
               backgroundColor: theme.lightPurple,
@@ -80,8 +78,8 @@ class HomeViewState extends ConsumerState<HomeView> {
             ),
           ),
           Visibility(
-            child: const Text("LeaderBoard"),
             visible: vProvider.currentPage == 1 ? true : false,
+            child: const Text("LeaderBoard"),
           ),
         ],
       ),
@@ -90,21 +88,21 @@ class HomeViewState extends ConsumerState<HomeView> {
           onSelected: handlePopupMenuSelection,
           itemBuilder: (BuildContext context) {
             return [
-              PopupMenuItem<String>(
+              const PopupMenuItem<String>(
                 value: 'signOut',
                 child: ListTile(
                   leading: Icon(Icons.exit_to_app),
                   title: Text('Sign Out'),
                 ),
               ),
-              PopupMenuItem<String>(
+              const PopupMenuItem<String>(
                 value: 'localNotifications',
                 child: ListTile(
                   leading: Icon(Icons.notifications),
                   title: Text('Notifications'),
                 ),
               ),
-              PopupMenuItem<String>(
+              const PopupMenuItem<String>(
                 value: 'changePassword',
                 child: ListTile(
                   leading: Icon(Icons.lock),
