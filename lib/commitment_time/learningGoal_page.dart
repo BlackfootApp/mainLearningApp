@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bfootlearn/commitment_time/settingPage.dart';
+import 'package:bfootlearn/components/custom_appbar.dart';
 
 
 
@@ -15,23 +16,23 @@ class LearningGoalPage extends ConsumerStatefulWidget {
 class _LearningPageState extends ConsumerState<LearningGoalPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Learning Page'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+return Scaffold(
+  appBar: customAppBar(context: context, title: 'Learning Goal'),
+  body: Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      // 这里可以添加你的子小部件
+      children: [
             // Add your widgets here
             _buildLearningTimeDisplay(),
             _buildLearningSettings(),
           ],
-        ),
-      ),
-    );
+    ),
+  ),
+);
+
   }
 
   

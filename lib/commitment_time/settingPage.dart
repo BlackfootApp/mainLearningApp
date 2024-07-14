@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bfootlearn/commitment_time/Achievement.dart';
+import 'package:bfootlearn/components/custom_appbar.dart';
 
 class SettingPage extends StatefulWidget {
   const SettingPage({Key? key}) : super(key: key);
@@ -14,9 +15,9 @@ class _SettingPageState extends State<SettingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Study Goal Settings'),
-      ),
+      //appBar: AppBar(
+        //title: Text('Study Goal Settings'),
+         appBar: customAppBar(context: context, title: 'Learning Goal'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
