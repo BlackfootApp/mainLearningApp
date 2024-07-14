@@ -1,8 +1,10 @@
 import 'package:bfootlearn/Phrases/models/card_data.dart';
 import 'package:bfootlearn/Phrases/widgets/card_slider.dart';
+import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/vocabulary/viwes/v_game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../riverpod/river_pod.dart';
 
 class LearningPage extends ConsumerStatefulWidget {
@@ -32,18 +34,9 @@ class _LearningPageState extends ConsumerState<LearningPage> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          title: Text(widget.seriesName),
-          backgroundColor: theme.lightPurple,
-        ),
+        appBar: customAppBar(context: context, title: widget.seriesName),
         body: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             image: DecorationImage(
               image: AssetImage('assets/Background2.jpg'),
               fit: BoxFit.cover,

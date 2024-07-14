@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-<!-- Required permissions for scheduling notifications -->
+<!-- Required permissions for scheduling notifications and admin page  vbn-->
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
 <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
@@ -11,11 +13,8 @@
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
-
-<!-- Specify either SCHEDULE_EXACT_ALARM or USE_EXACT_ALARM based on your requirements -->
-
-<!-- Required permission for using full-screen intent notifications -->
     <application
+        android:requestLegacyExternalStorage="true"
         android:label="l'poyit"
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"

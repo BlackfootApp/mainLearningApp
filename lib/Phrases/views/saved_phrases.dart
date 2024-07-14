@@ -1,4 +1,5 @@
 import 'package:bfootlearn/Phrases/widgets/card_slider.dart';
+import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/riverpod/river_pod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,23 +15,13 @@ class _SavedPageState extends ConsumerState<SavedPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = ref.watch(themeProvider);
     final blogProviderObj = ref.watch(blogProvider);
     final savedBlogs = blogProviderObj.getUserPhraseProgress().savedPhrases;
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: const Text("Saved Blogs"),
-        backgroundColor: theme.lightPurple,
-      ),
+      appBar: customAppBar(context: context, title: 'Saved Phrases'),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/Background2.jpg'),
             fit: BoxFit.cover,
@@ -38,7 +29,10 @@ class _SavedPageState extends ConsumerState<SavedPage> {
         ),
         child: savedBlogs.isEmpty
             ? const Center(
-                child: Text('No Saved Blogs'),
+                child: Text(
+                  'No Saved Phrases',
+                  style: TextStyle(fontSize: 20),
+                ),
               )
             : CardSlider(
                 cardDataList: savedBlogs,

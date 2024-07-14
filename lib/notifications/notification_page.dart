@@ -1,4 +1,6 @@
+import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/notifications/notification_provider.dart';
+import 'package:bfootlearn/notifications/showPermissionDeniedDialog.dart';
 import 'package:bfootlearn/riverpod/river_pod.dart';
 import 'package:day_night_time_picker/lib/daynight_timepicker.dart';
 import 'package:day_night_time_picker/lib/state/time.dart';
@@ -43,13 +45,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     bool isReminderOn = notificationProvide.isReminderOn;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Notifications",
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFFcccbff),
-      ),
+      appBar: customAppBar(context: context, title: 'Notifications'),
       body: Stack(
         children: [
           Positioned.fill(
@@ -91,6 +87,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         notificationProvide.toggleReminderMode();
         _scheduleNotification();
       });
+    } else if (status.isDenied || status.isPermanentlyDenied) {
+      // Permission is denied, handle this case accordingly
+      showPermissionDeniedDialog(
+          context: context,
+          content:
+              'Notification permission is required to enable study reminders. Please enable it in the app settings.');
     }
   }
 

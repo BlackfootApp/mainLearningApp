@@ -1,7 +1,6 @@
 import 'package:bfootlearn/adminProfile/models/conversation_model.dart';
 import 'package:bfootlearn/adminProfile/services/conversation_functions.dart';
 import 'package:bfootlearn/adminProfile/services/flutter_sound_methods.dart';
-import 'package:bfootlearn/adminProfile/services/timer_methods.dart';
 import 'package:bfootlearn/adminProfile/widgets/dialogbox_textfield.dart';
 import 'package:bfootlearn/adminProfile/widgets/old_audio_player.dart';
 import 'package:flutter/material.dart';
@@ -10,41 +9,44 @@ import '../../components/text_style.dart';
 import '../widgets/recording_audio_container.dart';
 
 final ConversationFucntions conversationFucntions = ConversationFucntions();
+final FlutterSoundMethods flutterSoundMethods = FlutterSoundMethods();
 
-void showDialogDeletePhase({
+void showDialogDeleteConversations({
   required BuildContext context,
-  required ConversationModel conversation,
+  required VoidCallback onPressedDelete,
 }) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
+        title: Text(
+          "Delete Phrases",
+          style: dialogBoxTitleTextStyle,
+        ),
         backgroundColor: Colors.purple.shade300,
         content: Text(
-          'Do you want to delete this conversation?',
+          "Are you sure you want to delete the selected phrases?",
           style: dialogBoxContentTextStyle,
         ),
         actions: [
           TextButton(
-            child: Text(
-              'No',
-              style: actionButtonTextStyle,
-            ),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          TextButton(
-            child: Text(
-              'Delete',
-              style: actionButtonTextStyle.copyWith(color: Colors.red),
-            ),
             onPressed: () {
-              // deletes the category
-              conversationFucntions.deleteConversation(
-                conversationId: conversation.conversationId,
-                context: context,
-              );
               Navigator.of(context).pop();
             },
+            child: Text(
+              "Cancel",
+              style: actionButtonTextStyle,
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              onPressedDelete();
+              Navigator.of(context).pop();
+            },
+            child: Text(
+              "Delete",
+              style: actionButtonTextStyle,
+            ),
           ),
         ],
       );
@@ -69,33 +71,32 @@ void showDialogUpdatePhase({
         contentPadding: const EdgeInsets.symmetric(horizontal: 20),
         backgroundColor: Colors.purple.shade300,
         title: Text(
-          'Update Phase',
+          'Update Phrase',
           style: dialogBoxTitleTextStyle,
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            const SizedBox(height: 15),
-            // english text
-            DialogBoxTextField(
-              controller: englishTextController,
-              hintText: 'Enter English text',
-            ),
-            const SizedBox(height: 15),
-            // blackfoot text
-            DialogBoxTextField(
-              controller: blackfootTextController,
-              hintText: 'Enter Blackfoot text',
-            ),
-            const SizedBox(height: 15),
-            OldAudioPlayer(
-                oldBlackfootAudioPath: oldConversation.blackfootAudio),
-            const SizedBox(height: 15),
-            // blackfoot audio
-            const RecordingAudioContainer(),
-            const SizedBox(height: 15),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              const SizedBox(height: 15),
+              DialogBoxTextField(
+                controller: englishTextController,
+                hintText: 'Enter English text',
+              ),
+              const SizedBox(height: 15),
+              DialogBoxTextField(
+                controller: blackfootTextController,
+                hintText: 'Enter Blackfoot text',
+              ),
+              const SizedBox(height: 15),
+              OldAudioPlayer(
+                  oldBlackfootAudioPath: oldConversation.blackfootAudio),
+              const SizedBox(height: 15),
+              const RecordingAudioContainer(),
+              const SizedBox(height: 15),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -104,18 +105,16 @@ void showDialogUpdatePhase({
               style: actionButtonTextStyle,
             ),
             onPressed: () {
-              FlutterSoundMethods().dispose();
+              flutterSoundMethods.dispose();
               Navigator.of(context).pop();
             },
           ),
           TextButton(
             onPressed: () async {
-              // Trim the text fields to remove leading and trailing spaces
               final blackfootText = blackfootTextController.text.trim();
               final englishText = englishTextController.text.trim();
               String blackfootAudioPath;
 
-              // Validate the fields
               if (blackfootText.isEmpty || englishText.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -127,9 +126,11 @@ void showDialogUpdatePhase({
               }
 
               try {
-                blackfootAudioPath = await ConversationFucntions()
-                    .uploadAudioFileToFirebaseStorage(
-                        FlutterSoundMethods().pathToSaveAudio);
+                final pathToSaveAudio =
+                    await flutterSoundMethods.getPathToSave(context: context);
+                debugPrint('Uploading audio file from path: $pathToSaveAudio');
+                blackfootAudioPath = await conversationFucntions
+                    .uploadAudioFileToFirebaseStorage(pathToSaveAudio);
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -140,7 +141,7 @@ void showDialogUpdatePhase({
                 return;
               }
 
-              ConversationFucntions().updateConversation(
+              conversationFucntions.updateConversation(
                 context: context,
                 oldConversationId: oldConversation.conversationId,
                 newEnglishText: englishText,
@@ -148,7 +149,7 @@ void showDialogUpdatePhase({
                 newBlackfootAudio: blackfootAudioPath,
               );
               Navigator.of(context).pop();
-              FlutterSoundMethods().dispose();
+              flutterSoundMethods.dispose();
               englishTextController.clear();
               blackfootTextController.clear();
             },
@@ -166,7 +167,6 @@ void showDialogUpdatePhase({
 void showDialogAddPhase({
   required BuildContext context,
   required String categoryName,
-  required TimerServiceProvider timerService,
 }) {
   final TextEditingController englishTextController = TextEditingController();
   final TextEditingController blackfootTextController = TextEditingController();
@@ -179,30 +179,29 @@ void showDialogAddPhase({
         contentPadding: const EdgeInsets.symmetric(horizontal: 20),
         backgroundColor: Colors.purple.shade300,
         title: Text(
-          'Add Phase',
+          'Add Phrase',
           style: dialogBoxTitleTextStyle,
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            const SizedBox(height: 15),
-            // english text
-            DialogBoxTextField(
-              controller: englishTextController,
-              hintText: 'Enter English text',
-            ),
-            const SizedBox(height: 15),
-            // blackfoot text
-            DialogBoxTextField(
-              controller: blackfootTextController,
-              hintText: 'Enter Blackfoot text',
-            ),
-            const SizedBox(height: 15),
-            // blackfoot audio
-            const RecordingAudioContainer(),
-            const SizedBox(height: 15),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              const SizedBox(height: 15),
+              DialogBoxTextField(
+                controller: englishTextController,
+                hintText: 'Enter English text',
+              ),
+              const SizedBox(height: 15),
+              DialogBoxTextField(
+                controller: blackfootTextController,
+                hintText: 'Enter Blackfoot text',
+              ),
+              const SizedBox(height: 15),
+              const RecordingAudioContainer(),
+              const SizedBox(height: 15),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -212,18 +211,16 @@ void showDialogAddPhase({
             ),
             onPressed: () {
               Navigator.of(context).pop();
-              timerService.resetTimerForRecorder();
-              FlutterSoundMethods().dispose();
+
+              flutterSoundMethods.dispose();
             },
           ),
           TextButton(
             onPressed: () async {
-              // Trim the text fields to remove leading and trailing spaces
               final blackfootText = blackfootTextController.text.trim();
               final englishText = englishTextController.text.trim();
               String blackfootAudioPath;
 
-              // Validate the fields
               if (blackfootText.isEmpty || englishText.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -235,9 +232,11 @@ void showDialogAddPhase({
               }
 
               try {
-                blackfootAudioPath = await ConversationFucntions()
-                    .uploadAudioFileToFirebaseStorage(
-                        FlutterSoundMethods().pathToSaveAudio);
+                final pathToSaveAudio =
+                    await flutterSoundMethods.getPathToSave(context: context);
+                debugPrint('Uploading audio file from path: $pathToSaveAudio');
+                blackfootAudioPath = await conversationFucntions
+                    .uploadAudioFileToFirebaseStorage(pathToSaveAudio);
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -248,7 +247,7 @@ void showDialogAddPhase({
                 return;
               }
 
-              ConversationFucntions().addConversation(
+              conversationFucntions.addConversation(
                 context: context,
                 seriesName: categoryName,
                 englishText: englishTextController.text,
@@ -257,7 +256,7 @@ void showDialogAddPhase({
               );
 
               Navigator.of(context).pop();
-              FlutterSoundMethods().dispose();
+              flutterSoundMethods.dispose();
               englishTextController.clear();
               blackfootTextController.clear();
             },

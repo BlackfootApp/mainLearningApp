@@ -1,10 +1,13 @@
 import 'package:bfootlearn/Phrases/models/card_data.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bfootlearn/Phrases/provider/mediaProvider.dart';
 import 'package:bfootlearn/Phrases/views/saved_phrases.dart';
-import 'package:bfootlearn/Quizpages/quiz_page.dart';
-import 'package:bfootlearn/Quizpages/quiz_result_list.dart';
+import 'package:bfootlearn/Phrases/views/stories_page.dart';
+import 'package:bfootlearn/Quizpages/pages/quiz_page.dart';
+import 'package:bfootlearn/Quizpages/pages/quiz_result_list.dart';
+import 'package:bfootlearn/components/custom_appbar.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../riverpod/river_pod.dart';
 import '../widgets/category_item.dart';
 import '../widgets/feature_item.dart';
@@ -13,7 +16,8 @@ class SentenceHomePage extends ConsumerStatefulWidget {
   const SentenceHomePage({Key? key}) : super(key: key);
 
   @override
-  _SentenceHomePageState createState() => _SentenceHomePageState();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _SentenceHomePageState();
 }
 
 class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
@@ -39,23 +43,12 @@ class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = ref.watch(themeProvider);
-
     final Size screenSize = MediaQuery.of(context).size;
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          title: const Text("Phrases Learning"),
-          backgroundColor: theme.lightPurple,
-        ),
+        appBar: customAppBar(context: context, title: 'Phrases Learning'),
         body: SingleChildScrollView(
           child: Container(
             color: Colors.white,
@@ -68,9 +61,8 @@ class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
                   width: screenSize.width,
                   fit: BoxFit.cover,
                 ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 18),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 18),
                   child: Text(
                     'Features',
                     style: TextStyle(
@@ -118,12 +110,21 @@ class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
                           );
                         },
                       ),
+                      FeatureItem(
+                        title: 'Stories',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const StoriesPage()),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 18),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 18),
                   child: Text(
                     'Categories',
                     style: TextStyle(
@@ -142,7 +143,7 @@ class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
                           scrollDirection: Axis.horizontal,
                           children: seriesOptions.map((seriesData) {
                             final imageUrl =
-                                getImageUrl(seriesData['iconImage']);
+                                getDownloadUrl(seriesData['iconImage']);
                             return FutureBuilder<String>(
                               future: imageUrl,
                               builder: (context, snapshot) {
