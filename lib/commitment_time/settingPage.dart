@@ -30,7 +30,7 @@ class _SettingPageState extends State<SettingPage> {
                 fontWeight: FontWeight.w900,
               ),
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: 60),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
