@@ -1,5 +1,6 @@
 import 'package:bfootlearn/Phrases/models/card_data.dart';
 import 'package:bfootlearn/Phrases/widgets/card_slider.dart';
+import 'package:bfootlearn/components/color_file.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/vocabulary/viwes/v_game.dart';
 import 'package:flutter/material.dart';
@@ -82,7 +83,7 @@ class _LearningPageState extends ConsumerState<LearningPage> {
                                   vertical: 16.0,
                                   horizontal: 32.0,
                                 ),
-                                backgroundColor: const Color(0xFFcccbff),
+                                backgroundColor: purpleLight,
                               ),
                               child:
                                   const Text('Explore related vocabularies?'),
