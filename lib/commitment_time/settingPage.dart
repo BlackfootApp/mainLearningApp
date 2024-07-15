@@ -16,18 +16,19 @@ class _SettingPageState extends State<SettingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       //appBar: AppBar(
-        //title: Text('Study Goal Settings'),
-         appBar: customAppBar(context: context, title: 'Learning Goal'),
+      //title: Text('Study Goal Settings'),
+      appBar: customAppBar(context: context, title: 'Learning Goal'),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          //crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Set Your Study Goal:',
-              style: TextStyle(fontSize: 20),
+              'Your Daily Learning Goal',
+              style: TextStyle(fontSize: 25),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 30),
             Slider(
               value: _studyGoal,
               min: 0.5,
@@ -53,9 +54,12 @@ class _SettingPageState extends State<SettingPage> {
                   _saveStudyGoal(_studyGoal);
                   Navigator.pop(context);
                   Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CongratulationPage(message: 'Awesome!',)),
-                 );
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const CongratulationPage(
+                              message: 'Awesome!',
+                            )),
+                  );
                 },
                 child: Text('Save'),
               ),
