@@ -79,6 +79,7 @@ dependencies:
   file_picker: ^8.0.5
   android_intent_plus: ^5.0.2
   flutter_speed_dial: ^7.0.0
+  share_plus:
 
 
 
@@ -96,6 +97,7 @@ dev_dependencies:
   custom_lint:
   riverpod_generator: ^2.3.6
   riverpod_lint: ^2.3.4
+  intl: ^0.17.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
