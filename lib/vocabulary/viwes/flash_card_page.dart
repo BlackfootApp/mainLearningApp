@@ -54,6 +54,7 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
     userRepo.getSavedWords(userRepo.uid, widget.category);
     vocaProvide.storeValuesForCategory(widget.category);
     print("init state categoy is ${widget.category}");
+    print("init state score is ${userRepo.score}");
      userRepo.getBadge(userRepo.uid).then((value) {
        newBadge = userRepo.badge;
      });
@@ -210,6 +211,7 @@ double progress = 0.0;
     lottieController.animateTo(values['lProgress']);
     print("index is $index");
     print("lporgress is ${vocaProvide.lProgress}");
+    print("score is $score");
     return FutureBuilder(
       future: vocaProvide.getDataByCategory2(widget.category, setDocRefCat(widget.category)),
       builder: (context,snapshot) {
@@ -310,7 +312,7 @@ double progress = 0.0;
                                 scoreIndex = index+1;
                                 score += 1;
                                 userRepo.updateScore(userRepo.uid, score);
-                                leaderboardRepo.addToLeaderBoard(userRepo.user.name, score);
+                                leaderboardRepo.addToLeaderBoard(userRepo.name, score);
                                 vocaProvide.cardsFlipped++;
                                 print("score is -------------- $score");
                                 double progress = (vocaProvide.cardsFlipped / snapshot.data!.length) ; // replace totalNumberOfCards with the actual number of cards
@@ -458,7 +460,7 @@ double progress = 0.0;
                     children: [
                       SizedBox(
                           height: 30,
-                          width: 300,
+                          width: 260,
                           child: ValueListenableBuilder<double>(
                             valueListenable: progressNotifier,
                             builder: (context, value, child) {
@@ -466,6 +468,8 @@ double progress = 0.0;
                                 vocaProvide.progress = value;
                               });
                               if(value>=1){
+                                userRepo.incrementHeart(userRepo.uid);
+
                                 Future.delayed(const Duration(seconds: 5), () {
                                   _controllerCenter.play();
                                   WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -587,7 +591,7 @@ double progress = 0.0;
             AlertDialog(
               title: const Text('Great'),
               content: Text(
-                  'You have completed the category and earned a badge. Your score is $score.'),
+                  'You have completed the category and earned a ♥. Your XP points are $score.'),
               actions: <Widget>[
                 TextButton(
                   child: const Text('Choose a new category'),
@@ -595,7 +599,7 @@ double progress = 0.0;
                     final vocaProvide = ref.read(vocaProvider);
                     setNewBadge(widget.category);
                     await ref.read(userProvider).updateBadge(ref.read(userProvider).uid, newBadge);
-                    ref.read(userProvider).setCatagories();
+                    ref.read(userProvider).refreshCatagories();
                     _controllerCenter.stop();
                     progressNotifier.value = 0.0;
                     scoreIndex = 0;

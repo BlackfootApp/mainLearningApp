@@ -4,6 +4,7 @@ import 'package:bfootlearn/Phrases/views/saved_phrases.dart';
 import 'package:bfootlearn/Phrases/views/stories_page.dart';
 import 'package:bfootlearn/Quizpages/pages/quiz_page.dart';
 import 'package:bfootlearn/Quizpages/pages/quiz_result_list.dart';
+import 'package:bfootlearn/components/color_file.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -62,13 +63,25 @@ class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
                   fit: BoxFit.cover,
                 ),
                 const Padding(
+                  padding: EdgeInsets.only(top: 15, right: 15, left: 15),
+                  child: Text(
+                    '"Discover the Blackfoot spirit: each phrase connects you to our language, heritage, and ancestral wisdom."',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: purpleLight,
+                      fontFamily: 'Chewy',
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12, horizontal: 18),
                   child: Text(
                     'Features',
                     style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFcccbff),
+                      color: purpleLight,
                       fontFamily: 'Chewy',
                       letterSpacing: 2,
                     ),
@@ -87,6 +100,16 @@ class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => const SavedPage()),
+                          );
+                        },
+                      ),
+                      FeatureItem(
+                        title: 'Stories',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const StoriesPage()),
                           );
                         },
                       ),
@@ -110,16 +133,6 @@ class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
                           );
                         },
                       ),
-                      FeatureItem(
-                        title: 'Stories',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const StoriesPage()),
-                          );
-                        },
-                      ),
                     ],
                   ),
                 ),
@@ -130,7 +143,7 @@ class _SentenceHomePageState extends ConsumerState<SentenceHomePage> {
                     style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFcccbff),
+                      color: purpleLight,
                       fontFamily: 'Chewy',
                       letterSpacing: 2,
                     ),

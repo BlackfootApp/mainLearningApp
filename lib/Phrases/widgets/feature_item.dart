@@ -1,3 +1,4 @@
+import 'package:bfootlearn/components/color_file.dart';
 import 'package:flutter/material.dart';
 
 class FeatureItem extends StatelessWidget {
@@ -15,8 +16,10 @@ class FeatureItem extends StatelessWidget {
     IconData iconData = (title == 'Quiz')
         ? Icons.quiz
         : (title == 'Saved')
-            ? Icons.saved_search
-            : Icons.newspaper;
+            ? Icons.folder_special
+            : (title == 'Stories')
+                ? Icons.diversity_1_rounded
+                : Icons.newspaper;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -24,7 +27,7 @@ class FeatureItem extends StatelessWidget {
         height: MediaQuery.of(context).size.width * 0.25,
         margin: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFcccbff),
+          color: purpleLight,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
