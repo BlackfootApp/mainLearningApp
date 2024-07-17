@@ -1,90 +1,109 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bfootlearn/commitment_time/Achievement.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
+import 'package:bfootlearn/commitment_time/study_goal_provider.dart';
 
-class SettingPage extends StatefulWidget {
+class SettingPage extends ConsumerStatefulWidget {
   const SettingPage({Key? key}) : super(key: key);
 
   @override
   _SettingPageState createState() => _SettingPageState();
 }
 
-class _SettingPageState extends State<SettingPage> {
-  double _studyGoal = 30;
+class _SettingPageState extends ConsumerState<SettingPage> {
+  late int _studyGoal;
+
+  @override
+  void initState() {
+    super.initState();
+    _studyGoal = ref.read(studyGoalProvider);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: customAppBar(context: context, title: 'Learning Goal'),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          //mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 80),
-            const Text(
-              'Your Daily Learning Goal',
-              style: TextStyle(
-                fontSize: 30,
-                color: Color(0xffbdbcfd),
-                fontWeight: FontWeight.w900,
+      body: Column(
+        children: [
+          Image.asset(
+            'assets/settingPage.png',
+            height: MediaQuery.of(context).size.height * 0.25,
+            width: MediaQuery.of(context).size.width,
+            fit: BoxFit.cover,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Your Daily Learning Goal',
+            style: TextStyle(
+              fontSize: 35,
+              fontWeight: FontWeight.w900,
+              fontFamily: 'Chewy',
+              foreground: Paint()
+                ..shader = LinearGradient(
+                  colors: <Color>[
+                    Color(0xffbdbcfd),
+                    Color.fromARGB(255, 175, 145, 230),
+                  ],
+                ).createShader(Rect.fromLTWH(0.0, 0.0, 400.0, 70.0)),
+            ),
+          ),
+          const SizedBox(height: 30),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.remove_circle,
+                  color: Color.fromARGB(255, 232, 165, 176),
+                  size: 50,
+                ),
+                onPressed: _studyGoal > 5 ? () => _decrementGoal(5) : null,
+              ),
+              const SizedBox(width: 30),
+              _buildStudyGoal(),
+              const SizedBox(width: 30),
+              IconButton(
+                icon: const Icon(
+                  Icons.add_circle,
+                  color: Color.fromARGB(255, 232, 165, 176),
+                  size: 50,
+                ),
+                onPressed: _studyGoal < 300 ? () => _incrementGoal(5) : null,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Text(
+            '( Selected Study Goal: $_studyGoal Mins )',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: Color.fromARGB(255, 175, 145, 230),
+            ),
+          ),
+          const SizedBox(height: 60),
+          Center(
+            child: ElevatedButton(
+              onPressed: _saveStudyGoal,
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 40),
+                elevation: 10,
+                shadowColor: Color.fromARGB(255, 58, 13, 79),
+                backgroundColor: Color.fromARGB(255, 175, 145, 230),
+              ),
+              child: const Text(
+                'Save',
+                style: TextStyle(
+                  fontSize: 30,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ),
-            const SizedBox(height: 50),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.remove_circle,
-                    color: Color(0xffbdbcfd),
-                    size: 50,
-                  ),
-                  onPressed: _studyGoal > 5 ? () => _decrementGoal(5) : null,
-                ),
-                const SizedBox(width: 10),
-                _buildStudyGoal(),
-                const SizedBox(width: 10),
-                IconButton(
-                  icon: const Icon(
-                    Icons.add_circle,
-                    color: Color(0xffbdbcfd),
-                    size: 50,
-                  ),
-                  onPressed: _studyGoal < 300 ? () => _incrementGoal(5) : null,
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-            Text(
-              '( Selected Study Goal: $_studyGoal Mins )',
-              style: const TextStyle(
-                fontSize: 18,
-                color: Color(0xffbdbcfd),
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 60),
-            Center(
-              child: ElevatedButton(
-                onPressed: _saveStudyGoal,
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 40),
-                  backgroundColor: Color(0xffbdbcfd),
-                ),
-                child: const Text(
-                  'Save',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 30,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -95,17 +114,25 @@ class _SettingPageState extends State<SettingPage> {
         Text(
           '$_studyGoal',
           style: const TextStyle(
-            fontSize: 60,
+            fontSize: 80,
             fontWeight: FontWeight.w900,
-            color: Color(0xffbdbcfd),
+            fontFamily: 'Chewy',
+            color: Color.fromARGB(255, 175, 145, 230),
+            shadows: [
+              Shadow(
+                offset: Offset(3.0, 3.0),
+                blurRadius: 5.0,
+                color: Color.fromARGB(255, 120, 54, 172),
+              ),
+            ],
           ),
         ),
         const Text(
           'Mins / Day',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 30,
             fontWeight: FontWeight.w900,
-            color: Color(0xffbdbcfd),
+            color: Color.fromARGB(255, 175, 145, 230),
           ),
         ),
       ],
@@ -125,7 +152,7 @@ class _SettingPageState extends State<SettingPage> {
   }
 
   void _saveStudyGoal() {
-    // Save the study goal to storage or database
+    ref.read(studyGoalProvider.notifier).setStudyGoal(_studyGoal);
     print('Saving study goal: $_studyGoal Mins');
     Navigator.pop(context);
     Navigator.push(
