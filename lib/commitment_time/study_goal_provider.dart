@@ -7,11 +7,9 @@ final studyGoalProvider = StateNotifierProvider<StudyGoalNotifier, int>((ref) {
 
 class StudyGoalNotifier extends StateNotifier<int> {
   static const _studyGoalKey = 'studyGoal';
-
   StudyGoalNotifier() : super(30) {
     _loadStudyGoal();
   }
-
   Future<void> _loadStudyGoal() async {
     final prefs = await SharedPreferences.getInstance();
     state = prefs.getInt(_studyGoalKey) ?? 30;

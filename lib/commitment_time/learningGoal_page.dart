@@ -6,12 +6,21 @@ import 'package:bfootlearn/commitment_time/study_goal_provider.dart';
 
 class LearningGoalPage extends ConsumerStatefulWidget {
   const LearningGoalPage({Key? key}) : super(key: key);
-
   @override
   _LearningGoalPageState createState() => _LearningGoalPageState();
 }
 
 class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
+  List<bool> _completedGoals = [
+    true,
+    false,
+    true,
+    false,
+    true,
+    false,
+    false
+  ]; //示例完成目标
+
   @override
   Widget build(BuildContext context) {
     final studyGoal = ref.watch(studyGoalProvider);
@@ -21,24 +30,53 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
     return Scaffold(
       appBar: customAppBar(context: context, title: 'Learning Goal'),
       body: Center(
-        // 这里添加 Center 组件
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _buildLearningProgress(studyGoal, screenWidth, screenHeight),
-              const SizedBox(height: 20),
-              _buildLearningTimeDisplay(),
-              const SizedBox(height: 20),
-              _buildLearningDaysCount(),
-              const SizedBox(height: 20),
-              _buildLearningSettings(),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildLearningProgress(studyGoal, screenWidth, screenHeight),
+            const SizedBox(height: 60),
+            _buildLearningSettings(),
+            const SizedBox(height: 80),
+            _buildWeekdaysIndicator(),
+            const SizedBox(height: 30),
+            _buildLearningDaysCount(),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildWeekdaysIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(7, (index) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.grey.shade300,
+              border: Border.all(
+                color:
+                    _completedGoals[index] ? Colors.purple : Colors.transparent,
+                width: 2,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][index],
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
     );
   }
 
@@ -46,60 +84,76 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
       int studyGoal, double screenWidth, double screenHeight) {
     return Column(
       children: [
-        const Text(
+        Text(
           "Today's Learning",
-          style: TextStyle(fontSize: 24, color: Colors.purple),
+          style: TextStyle(
+            fontSize: 35,
+            fontWeight: FontWeight.w900,
+            fontFamily: 'Chewy',
+            foreground: Paint()
+              ..shader = LinearGradient(
+                colors: <Color>[
+                  Color(0xffbdbcfd),
+                  Color.fromARGB(255, 175, 145, 230),
+                ],
+              ).createShader(Rect.fromLTWH(0.0, 0.0, 400.0, 70.0)),
+          ),
         ),
-        const SizedBox(height: 20),
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: screenWidth * 0.5, // 动态调整圆环的大小
-              height: screenWidth * 0.5,
-              child: CircularProgressIndicator(
-                value: 8.21 / studyGoal,
-                strokeWidth: 10,
-                backgroundColor: Colors.grey[300],
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.purple),
-              ),
-            ),
-            Text(
-              '8:21',
-              style: TextStyle(
-                  fontSize: screenWidth * 0.1,
-                  color: Colors.purple), // 动态调整文字大小
-            ),
-          ],
+        const SizedBox(height: 60),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                CustomPaint(
+                  size: Size(screenWidth * 0.7, screenWidth * 0.4), // 半圆形
+                  painter: SemicircularProgressPainter(8.21 / studyGoal),
+                ),
+                Positioned(
+                  top: screenWidth * 0.1,
+                  child: Text(
+                    '8:21',
+                    style: const TextStyle(
+                      fontSize: 80,
+                      fontWeight: FontWeight.w900,
+                      fontFamily: 'Chewy',
+                      color: Color.fromARGB(255, 175, 145, 230),
+                      shadows: [
+                        Shadow(
+                          offset: Offset(3.0, 3.0),
+                          blurRadius: 5.0,
+                          color: Color.fromARGB(255, 120, 54, 172),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 10),
         Text(
-          'Goal: $studyGoal mins',
+          '(Goal: $studyGoal mins)',
           style: TextStyle(
-              fontSize: screenWidth * 0.04, color: Colors.purple), // 动态调整文字大小
+            fontSize: screenWidth * 0.05,
+            fontWeight: FontWeight.w900,
+            color: Color.fromARGB(255, 175, 145, 230),
+          ),
         ),
       ],
-    );
-  }
-
-  Widget _buildLearningTimeDisplay() {
-    return ElevatedButton(
-      onPressed: () {
-        // Handle continue learning button press
-      },
-      child: const Text('Continue learning'),
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.purple,
-        textStyle: const TextStyle(fontSize: 16),
-      ),
     );
   }
 
   Widget _buildLearningDaysCount() {
     return const Text(
       "You've been studying for 5 days.",
-      style: TextStyle(fontSize: 16),
+      style: TextStyle(
+        fontSize: 25,
+        fontWeight: FontWeight.w900,
+        fontFamily: 'Chewy',
+        color: Color.fromARGB(255, 175, 145, 230),
+      ),
     );
   }
 
@@ -111,12 +165,50 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
           MaterialPageRoute(builder: (context) => const SettingPage()),
         );
       },
-      child: const Text('Set Learning Goal'),
       style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.purple,
-        textStyle: const TextStyle(fontSize: 16),
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+        elevation: 10,
+        shadowColor: Color.fromARGB(255, 58, 13, 79),
+        backgroundColor: Color.fromARGB(255, 175, 145, 230),
+      ),
+      child: const Text(
+        'Reset Your Goal',
+        style: TextStyle(
+          fontSize: 20,
+          color: Colors.white,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
+  }
+}
+
+class SemicircularProgressPainter extends CustomPainter {
+  final double progress;
+  SemicircularProgressPainter(this.progress);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint backgroundPaint = Paint()
+      ..color = Colors.grey[300]!
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10.0;
+
+    Paint foregroundPaint = Paint()
+      ..color = Colors.purple
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10.0;
+
+    Rect rect = Rect.fromLTRB(0, 0, size.width, size.height * 2);
+    double startAngle = -3.14;
+    double sweepAngle = 3.14 * progress;
+
+    canvas.drawArc(rect, startAngle, 3.14, false, backgroundPaint);
+    canvas.drawArc(rect, startAngle, sweepAngle, false, foregroundPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return true;
   }
 }

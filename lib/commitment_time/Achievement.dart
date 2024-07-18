@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:lottie/lottie.dart';
+import 'package:bfootlearn/components/custom_appbar.dart';
 
 class CongratulationPage extends StatelessWidget {
   final String message;
@@ -9,52 +10,47 @@ class CongratulationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Congratulations!'),
-        backgroundColor: Colors.purple,
-      ),
+      appBar: customAppBar(context: context, title: 'Learning Goal'),
       body: Stack(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.purple, Colors.blue],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ScaleAnimatedTextKit(
-                  text: ["Congratulations!", "You did it!"],
-                  textStyle: TextStyle(
-                    fontSize: 50.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.center,
+                Image.asset(
+                  'assets/Achivement_page.png',
+                  // 设置图片的高度和宽度，或者使用alignment属性进行控制。
+                  height: 250,
+                  width: 250,
                 ),
                 SizedBox(height: 20),
                 Text(
-                  'You have completed your daily learning goal!',
+                  'Congratulations!',
                   style: TextStyle(
-                    fontSize: 24.0,
-                    color: Colors.white,
+                    fontSize: 28.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 40),
+                SizedBox(height: 50),
+                Text(
+                  'You got an achievement!',
+                  style: TextStyle(
+                    fontSize: 24.0,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 50),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    // 可以添加分享功能
                   },
-                  child: Text('Close'),
+                  child: Text('Share'),
                   style: ElevatedButton.styleFrom(
-                    //color: Colors.white,
-                    //onPrimary: Colors.purple,
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.purple,
                     textStyle: TextStyle(
                       fontSize: 20,
                     ),
@@ -63,8 +59,22 @@ class CongratulationPage extends StatelessWidget {
               ],
             ),
           ),
+          Positioned.fill(
+            child: Lottie.asset(
+              'assets/confetti.json', // 替换成实际的文件路径
+              fit: BoxFit.cover,
+            ),
+          ),
         ],
       ),
     );
   }
+}
+
+void main() {
+  runApp(MaterialApp(
+    home: CongratulationPage(
+      message: 'You have completed your daily learning goal!',
+    ),
+  ));
 }
