@@ -42,8 +42,11 @@ class HomeViewState extends ConsumerState<VocabularyHome> {
     UserModel user = userRepo.user; // get the user instance from somewhere
     print("badge ${userRepo.badge}");
     String badgeCategory = user.getBadgeCategory();
-    print("badge category $badgeCategory");
 
+     final UserProvide = ref.read(userProvider);
+    String dailyGoal = UserProvide.dailyGoal.toString();
+    print("badge category $badgeCategory");
+   
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -123,7 +126,7 @@ class HomeViewState extends ConsumerState<VocabularyHome> {
                         ),
                         child: Center(
                             child: Text(
-                          "Pick a Category",
+                          "Pick a Category (" + dailyGoal +")",
                           style: theme.themeData.textTheme.displayMedium
                               ?.copyWith(color: Colors.white),
                         )),

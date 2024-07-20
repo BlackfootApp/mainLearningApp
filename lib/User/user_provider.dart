@@ -17,6 +17,7 @@ class UserProvider extends ChangeNotifier {
   String _expiresIn = '';
   int _score = 0;
   int _rank = 0;
+  int _dailyGoal = 0;
   UserModel _user;
   int _heart = 0;
 
@@ -33,6 +34,7 @@ class UserProvider extends ChangeNotifier {
           imageUrl: '',
           score: 0,
           rank: 0,
+          dailyGoal: 0,
           heart: 0,
           joinedDate: '',
           savedWords: [],
@@ -72,6 +74,8 @@ class UserProvider extends ChangeNotifier {
   int get rank => _rank;
 
   int get heart => _heart;
+
+  int get dailyGoal => _dailyGoal;
 
   String get username => _username;
 
@@ -136,6 +140,12 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setDailyGoal(int dailyGoal) {
+    _dailyGoal = dailyGoal;
+    notifyListeners();
+  }
+
+
   void setHeart(int heart) {
     _heart = heart;
     notifyListeners();
@@ -177,6 +187,7 @@ class UserProvider extends ChangeNotifier {
       'imageUrl': user.imageUrl,
       'score': user.score,
       'rank': user.rank,
+      'dailyGoal': user.dailyGoal,
       'badge': user.badge.toJson(),
       'joinedDate': user.joinedDate,
       'heart': user.heart,
@@ -200,6 +211,7 @@ class UserProvider extends ChangeNotifier {
       setPhotoUrl(user.imageUrl);
       setScore(user.score);
       setRank(user.rank);
+      setDailyGoal(user.dailyGoal);
       setHeart(user.heart);
       setUsername(user.userName);
       print("badge is ${user.badge} and of type ${user.badge.runtimeType}");
@@ -228,6 +240,7 @@ class UserProvider extends ChangeNotifier {
       setPhotoUrl(user.imageUrl);
       setScore(user.score);
       setRank(user.rank);
+      setDailyGoal(user.dailyGoal);
       setHeart(user.heart);
       setUsername(user.userName);
       print("badge is ${user.badge} and of type ${user.badge.runtimeType}");
@@ -276,6 +289,7 @@ class UserProvider extends ChangeNotifier {
       'email': user.email,
       'uid': user.uid,
       'role': user.role,
+      'dailyGoal': user.dailyGoal,
       'imageUrl': user.imageUrl,
       'score': user.score,
       'rank': user.rank,
@@ -531,5 +545,23 @@ class UserProvider extends ChangeNotifier {
         .doc(uid)
         .get()
         .then((value) => value.data()!['badge']);
+  }
+
+  
+  Future<String> getDailyGoal(String uid) async {
+    String v;
+    v = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get()
+        .then((value) => value.data()!['dailyGoal']);
+    return v;
+  }
+
+  Future<void> updateDailyGoal(String uid, int dailyGoal) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .update({'dailyGoal': dailyGoal});
   }
 }

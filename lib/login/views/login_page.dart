@@ -52,6 +52,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 role: 'user',
                 score: 0,
                 rank: 0,
+                dailyGoal:30,
                 heart: 0,
                 userName: emailController.text.split('@').first,
                 email: emailController.text,
