@@ -8,6 +8,7 @@ class UserModel {
   final String imageUrl;
   final int score;
   final int rank;
+  final int dailyGoal;
   final int heart;
   final String userName;
   final CardBadge badge;
@@ -23,6 +24,7 @@ class UserModel {
       required this.imageUrl,
       required this.score,
       required this.rank,
+      required this.dailyGoal,
       required this.heart,
       required this.savedWords,
       required this.savedPhrases,
@@ -36,6 +38,7 @@ class UserModel {
   String get getImageUrl => imageUrl;
   int get getScore => score;
   int get getRank => rank;
+  int get getDailyGoal => dailyGoal;
   int get getHeart => heart;
   String get getJoinedDate => joinedDate;
   String get getUserName => userName;
@@ -51,6 +54,7 @@ class UserModel {
         'imageUrl': imageUrl,
         'score': score,
         'rank': rank,
+        'dailyGoal': dailyGoal,
         'heart': heart,
         'userName': userName,
         'badge': badge.toJson(),
@@ -69,9 +73,11 @@ class UserModel {
       imageUrl: json['imageUrl'],
       score: json['score'] ?? 0,
       rank: json['rank'] ?? 0,
+      dailyGoal:json['dailyGoal'],
       heart: json['heart'] ?? 0,
       joinedDate: json['joinedDate'] ?? DateTime.now().toString(),
       userName: json['userName'] ?? '',
+
       savedWords: (json['savedWords'] as List).map((item) {
         print("item to be added $item");
         return SavedWords.fromJson(item);

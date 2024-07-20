@@ -162,8 +162,8 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const SettingPage()),
-        );
+          MaterialPageRoute(builder: (context) => SettingPage(),
+        ));
       },
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),

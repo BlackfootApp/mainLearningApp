@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:bfootlearn/User/user_provider.dart';
 import 'package:bfootlearn/commitment_time/Achievement.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/commitment_time/study_goal_provider.dart';
+import '../riverpod/river_pod.dart';
 
 class SettingPage extends ConsumerStatefulWidget {
-  const SettingPage({Key? key}) : super(key: key);
+  SettingPage({super.key});
 
   @override
   _SettingPageState createState() => _SettingPageState();
@@ -13,17 +15,20 @@ class SettingPage extends ConsumerStatefulWidget {
 
 class _SettingPageState extends ConsumerState<SettingPage> {
   late int _studyGoal;
-
+  late String uid;
+  late final UserProvider userRepo;
   @override
   void initState() {
     super.initState();
     _studyGoal = ref.read(studyGoalProvider);
+    userRepo = ref.read(userProvider);
+    uid = userRepo.uid;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar(context: context, title: 'Learning Goal'),
+      appBar: customAppBar(context: context, title: 'Setting Goal'),
       body: Column(
         children: [
           Image.asset(
@@ -154,6 +159,14 @@ class _SettingPageState extends ConsumerState<SettingPage> {
   void _saveStudyGoal() {
     ref.read(studyGoalProvider.notifier).setStudyGoal(_studyGoal);
     print('Saving study goal: $_studyGoal Mins');
+
+    //String currentGobal =  userRepo.getDailyGoal(userRepo.uid) as String;
+    final user = ref.read(userProvider.notifier);
+
+    if (user.uid != '' && _studyGoal > 0) {
+      user.updateDailyGoal(user.uid, _studyGoal);
+    }
+
     Navigator.pop(context);
     Navigator.push(
       context,
