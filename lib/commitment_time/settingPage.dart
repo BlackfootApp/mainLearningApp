@@ -164,15 +164,17 @@ class _SettingPageState extends ConsumerState<SettingPage> {
     //String currentGobal =  userRepo.getDailyGoal(userRepo.uid) as String;
     final user = ref.read(userProvider.notifier);
 
-    if (user.uid != '' && _studyGoal > 0) {
-      user.updateDailyGoal(user.uid, _studyGoal);
-      LearningTime time = new LearningTime(
-          startTime: DateTime.now().add(const Duration(minutes: -5)),
-          endTime: DateTime.now(),
-          model: 2);
+    if (_studyGoal > 0) {
+      user.updateDailyGoal(_studyGoal);
+
+      // LearningTime time = new LearningTime(
+      //     startTime: DateTime.now().add(const Duration(minutes: -5)),
+      //     endTime: DateTime.now(),
+      //     model: 2);
 
       //user.saveLearningTime(time);
     }
+    ref.read(studyGoalProvider.notifier).setStudyGoal(_studyGoal);
 
     Navigator.pop(context);
     Navigator.push(

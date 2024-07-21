@@ -28,7 +28,7 @@ class UserProvider extends ChangeNotifier {
   String _username = "";
   String _joinDate = "";
   SavedLearningData _userLearningProgress =
-      SavedLearningData(uid: '', savedLearningTime: []);
+      SavedLearningData(uid: '', savedLearningTime: [], dailyGoal: 30);
 
   UserProvider()
       : _badge = CardBadge(
@@ -662,11 +662,27 @@ class UserProvider extends ChangeNotifier {
     return v;
   }
 
-  Future<void> updateDailyGoal(String uid, int dailyGoal) async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .update({'dailyGoal': dailyGoal});
+  Future<void> updateDailyGoal(int dailyGoal) async {
+    try {
+      // Access Firestore collection 'users'
+      String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: currentUserEmail)
+              .get();
+
+      querySnapshot.docs.forEach((doc) {
+        String uid = doc.data()['uid'];
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .update({'dailyGoal': dailyGoal});
+      });
+    } catch (error) {
+      print("Error fetching data: $error");
+      rethrow;
+    }
   }
 
   Future<void> incrementHeart(String uid) async {
@@ -779,9 +795,25 @@ class UserProvider extends ChangeNotifier {
   }
 
   void saveLearningTime(LearningTime learningTime) async {
-    await FirebaseFirestore.instance.collection('users').doc(uid).update({
-      'savedLearningTime': FieldValue.arrayUnion([learningTime.toJson()])
-    });
+    try {
+      // Access Firestore collection 'users'
+      String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: currentUserEmail)
+              .get();
+
+      querySnapshot.docs.forEach((doc) {
+        String uid = doc.data()['uid'];
+        FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'savedLearningTime': FieldValue.arrayUnion([learningTime.toJson()])
+        });
+      });
+    } catch (error) {
+      print("Error fetching data: $error");
+      rethrow;
+    }
 
     notifyListeners();
   }
@@ -791,6 +823,7 @@ class UserProvider extends ChangeNotifier {
 
     double result = 0;
     String uid = '';
+    int dailyGobal = 0;
     int totalSeconds = 0;
     try {
       // Access Firestore collection 'users'
@@ -803,6 +836,7 @@ class UserProvider extends ChangeNotifier {
 
       querySnapshot.docs.forEach((doc) {
         List<dynamic> savedLearningTime = doc.data()['savedLearningTime'];
+        dailyGobal = doc.data()['dailyGoal'] ?? 0;
         uid = doc.data()['uid'];
 
         savedLearningTime.forEach((phraseData) {
@@ -824,8 +858,8 @@ class UserProvider extends ChangeNotifier {
         });
       });
 
-      SavedLearningData data =
-          SavedLearningData(uid: uid, savedLearningTime: savedLearning);
+      SavedLearningData data = SavedLearningData(
+          uid: uid, savedLearningTime: savedLearning, dailyGoal: dailyGobal);
 
       _userLearningProgress = data;
 

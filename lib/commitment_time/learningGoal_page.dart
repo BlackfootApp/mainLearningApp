@@ -13,15 +13,7 @@ class LearningGoalPage extends ConsumerStatefulWidget {
 }
 
 class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
-  List<bool> _completedGoals = [
-    true,
-    false,
-    true,
-    false,
-    true,
-    false,
-    false
-  ]; //示例完成目标
+  List<bool> _completedGoals = [true, false, true, false, true, false, false];
 
   @override
   void initState() {
@@ -32,19 +24,27 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
   Future<void> _fetchLearningTimeData() async {
     final user = ref.read(userProvider.notifier);
 
-    user.getSavedLearningTime(DateTime.now());
+    await user.getSavedLearningTime(DateTime.now());
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final studyGoal = ref.watch(studyGoalProvider);
+    int studyGoal = ref.watch(studyGoalProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    int dailyGoal = 0;
 
     double totalSeconds = 0;
     final user = ref.watch(userProvider);
-    user.getUserSavedLearningData().savedLearningTime.forEach((phraseData) {
+    final data = user.getUserSavedLearningData();
+
+    dailyGoal = data.dailyGoal ?? 30;
+
+    if (studyGoal > 0 && studyGoal != studyGoal) {
+      studyGoal = dailyGoal;
+    }
+    data.savedLearningTime.forEach((phraseData) {
       DateTime start = phraseData.startTime;
       DateTime end = phraseData.endTime;
       int duration = 0;
@@ -115,6 +115,10 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
 
   Widget _buildLearningProgress(int studyGoal, double screenWidth,
       double screenHeight, double learningTime) {
+    double progress = learningTime / studyGoal;
+    if (learningTime > studyGoal) {
+      progress = 1;
+    }
     return Column(
       children: [
         Text(
@@ -140,8 +144,7 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
               children: [
                 CustomPaint(
                   size: Size(screenWidth * 0.7, screenWidth * 0.4), // 半圆形
-                  painter:
-                      SemicircularProgressPainter(learningTime / studyGoal),
+                  painter: SemicircularProgressPainter(progress),
                 ),
                 Positioned(
                   top: screenWidth * 0.1,
