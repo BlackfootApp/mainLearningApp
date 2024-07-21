@@ -5,6 +5,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
+
+import '../LearningTime/models/learning_time.dart';
+import '../LearningTime/models/saved_LearningData.dart';
 
 class UserProvider extends ChangeNotifier {
   String _name = '';
@@ -23,6 +27,8 @@ class UserProvider extends ChangeNotifier {
 
   String _username = "";
   String _joinDate = "";
+  SavedLearningData _userLearningProgress =
+      SavedLearningData(uid: '', savedLearningTime: []);
 
   UserProvider()
       : _badge = CardBadge(
@@ -49,6 +55,7 @@ class UserProvider extends ChangeNotifier {
           joinedDate: '',
           savedWords: [],
           savedPhrases: [],
+          savedLearningTime: [],
           userName: '',
           email: '',
         ); // Initialize _user in the constructor
@@ -59,10 +66,16 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  SavedLearningData getUserSavedLearningData() {
+    return _userLearningProgress;
+  }
+
   CardBadge _badge;
 
   List<SavedWords> _savedWords = [];
   List<CardData> _savedPhrases = [];
+  List<LearningTime> _savedLearningTime = [];
+
   String get name => _name;
 
   String get email => _email;
@@ -93,6 +106,8 @@ class UserProvider extends ChangeNotifier {
   List<SavedWords> get savedWords => _savedWords;
 
   List<CardData> get savedPhrases => _savedPhrases;
+
+  List<LearningTime> get savedLearningTime => _savedLearningTime;
 
   CardBadge get badge => _badge;
 
@@ -156,7 +171,6 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-
   void setHeart(int heart) {
     _heart = heart;
     notifyListeners();
@@ -212,6 +226,8 @@ class UserProvider extends ChangeNotifier {
       'savedWords': user.savedWords?.map((word) => word.toJson()).toList(),
       'savedPhrases':
           user.savedPhrases?.map((phrase) => phrase.toJson()).toList(),
+      'savedLearningTime':
+          user.savedLearningTime?.map((time) => time.toJson()).toList(),
     });
   }
 
@@ -296,6 +312,7 @@ class UserProvider extends ChangeNotifier {
       joinedDate: '',
       savedWords: [],
       savedPhrases: [],
+      savedLearningTime: [],
       userName: '',
       email: '',
     ); // Return a default UserModel when the document doesn't exist
@@ -360,6 +377,8 @@ class UserProvider extends ChangeNotifier {
       'savedWords': user.savedWords?.map((word) => word.toJson()).toList(),
       'savedPhrases':
           user.savedPhrases?.map((phrase) => phrase.toJson()).toList(),
+      'savedLearningTime':
+          user.savedLearningTime?.map((time) => time.toJson()).toList(),
     });
   }
 
@@ -474,7 +493,8 @@ class UserProvider extends ChangeNotifier {
 
   sortAndUpdateRank() async {
     // Fetch all users
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('users').get();
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection('users').get();
 
     // Sort the users based on score
     List<QueryDocumentSnapshot> users = querySnapshot.docs;
@@ -750,5 +770,74 @@ class UserProvider extends ChangeNotifier {
   void setPhrases(List<CardData> savedPhrases) {
     _savedPhrases = savedPhrases;
     notifyListeners();
+  }
+
+  void setLearningTime(List<LearningTime> savedLearningTime) async {
+    _savedLearningTime = savedLearningTime;
+
+    notifyListeners();
+  }
+
+  void saveLearningTime(LearningTime learningTime) async {
+    await FirebaseFirestore.instance.collection('users').doc(uid).update({
+      'savedLearningTime': FieldValue.arrayUnion([learningTime.toJson()])
+    });
+
+    notifyListeners();
+  }
+
+  Future<void> getSavedLearningTime(DateTime dt) async {
+    List<LearningTime> savedLearning = [];
+
+    double result = 0;
+    String uid = '';
+    int totalSeconds = 0;
+    try {
+      // Access Firestore collection 'users'
+      String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: currentUserEmail)
+              .get();
+
+      querySnapshot.docs.forEach((doc) {
+        List<dynamic> savedLearningTime = doc.data()['savedLearningTime'];
+        uid = doc.data()['uid'];
+
+        savedLearningTime.forEach((phraseData) {
+          DateTime start = phraseData['startTime'].toDate();
+          DateTime end = phraseData['endTime'].toDate();
+          int duration = 0;
+          if (start.year == dt.year &&
+              start.month == dt.month &&
+              start.day == dt.day) {
+            LearningTime phrase = LearningTime(
+                startTime: start, endTime: end, model: phraseData['model']);
+            savedLearning.add(phrase);
+
+            duration = end.difference(start).inSeconds;
+            if (duration > 0) {
+              totalSeconds += duration;
+            }
+          }
+        });
+      });
+
+      SavedLearningData data =
+          SavedLearningData(uid: uid, savedLearningTime: savedLearning);
+
+      _userLearningProgress = data;
+
+      if (totalSeconds > 0) {
+        result = totalSeconds / 60;
+        // var date = new DateTime.fromMicrosecondsSinceEpoch(totalSeconds * 1000);
+
+        // timeToSeconds = DateFormat('m:ss').format(date);
+      }
+    } catch (error) {
+      print("Error fetching data: $error");
+      rethrow;
+    }
   }
 }

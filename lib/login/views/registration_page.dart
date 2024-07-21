@@ -69,6 +69,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 email: emailController.text,
                 savedWords: [],
                 savedPhrases: [],
+                savedLearningTime: [],
                 badge: CardBadge(
                     kinship: false,
                     direction: false,

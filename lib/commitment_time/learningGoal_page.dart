@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/commitment_time/study_goal_provider.dart';
 
+import '../riverpod/river_pod.dart';
+
 class LearningGoalPage extends ConsumerStatefulWidget {
   const LearningGoalPage({Key? key}) : super(key: key);
   @override
@@ -22,10 +24,40 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
   ]; //示例完成目标
 
   @override
+  void initState() {
+    super.initState();
+    _fetchLearningTimeData();
+  }
+
+  Future<void> _fetchLearningTimeData() async {
+    final user = ref.read(userProvider.notifier);
+
+    user.getSavedLearningTime(DateTime.now());
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final studyGoal = ref.watch(studyGoalProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+
+    double totalSeconds = 0;
+    final user = ref.watch(userProvider);
+    user.getUserSavedLearningData().savedLearningTime.forEach((phraseData) {
+      DateTime start = phraseData.startTime;
+      DateTime end = phraseData.endTime;
+      int duration = 0;
+
+      duration = end.difference(start).inSeconds;
+      if (duration > 0) {
+        totalSeconds += duration;
+      }
+    });
+    double learningTime = 0;
+    int learningMins = (totalSeconds / 60).toInt();
+    int learningSeconds = (totalSeconds - learningMins * 60).toInt();
+    learningTime = learningMins + learningSeconds / 100;
 
     return Scaffold(
       appBar: customAppBar(context: context, title: 'Learning Goal'),
@@ -34,7 +66,8 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildLearningProgress(studyGoal, screenWidth, screenHeight),
+            _buildLearningProgress(
+                studyGoal, screenWidth, screenHeight, learningTime),
             const SizedBox(height: 60),
             _buildLearningSettings(),
             const SizedBox(height: 80),
@@ -80,8 +113,8 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
     );
   }
 
-  Widget _buildLearningProgress(
-      int studyGoal, double screenWidth, double screenHeight) {
+  Widget _buildLearningProgress(int studyGoal, double screenWidth,
+      double screenHeight, double learningTime) {
     return Column(
       children: [
         Text(
@@ -107,12 +140,13 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
               children: [
                 CustomPaint(
                   size: Size(screenWidth * 0.7, screenWidth * 0.4), // 半圆形
-                  painter: SemicircularProgressPainter(8.21 / studyGoal),
+                  painter:
+                      SemicircularProgressPainter(learningTime / studyGoal),
                 ),
                 Positioned(
                   top: screenWidth * 0.1,
                   child: Text(
-                    '8:21',
+                    learningTime.toString(),
                     style: const TextStyle(
                       fontSize: 80,
                       fontWeight: FontWeight.w900,
@@ -161,9 +195,10 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
     return ElevatedButton(
       onPressed: () {
         Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => SettingPage(),
-        ));
+            context,
+            MaterialPageRoute(
+              builder: (context) => SettingPage(),
+            ));
       },
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),

@@ -4,6 +4,7 @@ import 'package:bfootlearn/User/user_provider.dart';
 import 'package:bfootlearn/commitment_time/Achievement.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/commitment_time/study_goal_provider.dart';
+import '../LearningTime/models/learning_time.dart';
 import '../riverpod/river_pod.dart';
 
 class SettingPage extends ConsumerStatefulWidget {
@@ -165,6 +166,12 @@ class _SettingPageState extends ConsumerState<SettingPage> {
 
     if (user.uid != '' && _studyGoal > 0) {
       user.updateDailyGoal(user.uid, _studyGoal);
+      LearningTime time = new LearningTime(
+          startTime: DateTime.now().add(const Duration(minutes: -5)),
+          endTime: DateTime.now(),
+          model: 2);
+
+      //user.saveLearningTime(time);
     }
 
     Navigator.pop(context);

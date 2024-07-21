@@ -1,5 +1,7 @@
 import 'package:bfootlearn/Phrases/models/card_data.dart';
 
+import '../LearningTime/models/learning_time.dart';
+
 class UserModel {
   final String name;
   final String email;
@@ -15,6 +17,7 @@ class UserModel {
   final String joinedDate;
   final List<SavedWords>? savedWords;
   final List<CardData>? savedPhrases;
+  final List<LearningTime>? savedLearningTime;
 
   UserModel(
       {required this.name,
@@ -28,6 +31,7 @@ class UserModel {
       required this.heart,
       required this.savedWords,
       required this.savedPhrases,
+      required this.savedLearningTime,
       required this.badge,
       required this.joinedDate,
       required this.userName});
@@ -45,6 +49,7 @@ class UserModel {
 
   List<SavedWords> get getSavedWords => savedWords ?? [];
   List<CardData> get getSavedPhrases => savedPhrases ?? [];
+  List<LearningTime> get getSavedLearningTime => savedLearningTime ?? [];
 
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -61,6 +66,8 @@ class UserModel {
         'joinedDate': joinedDate,
         'savedWords': savedWords?.map((word) => word.toJson()).toList(),
         'savedPhrases': savedPhrases?.map((phrase) => phrase.toJson()).toList(),
+        'savedLearningTime':
+            savedLearningTime?.map((time) => time.toJson()).toList()
       };
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -73,11 +80,10 @@ class UserModel {
       imageUrl: json['imageUrl'],
       score: json['score'] ?? 0,
       rank: json['rank'] ?? 0,
-      dailyGoal:json['dailyGoal'],
+      dailyGoal: json['dailyGoal'],
       heart: json['heart'] ?? 0,
       joinedDate: json['joinedDate'] ?? DateTime.now().toString(),
       userName: json['userName'] ?? '',
-
       savedWords: (json['savedWords'] as List).map((item) {
         print("item to be added $item");
         return SavedWords.fromJson(item);
@@ -93,6 +99,14 @@ class UserModel {
               seriesName: '');
         }
         return CardData.fromJson(item);
+      }).toList(),
+      savedLearningTime: (json['savedLearningTime'] as List).map((item) {
+        print("item to be added in saved learning time $item");
+        if (item == null || item.isEmpty) {
+          return LearningTime(
+              startTime: DateTime.now(), endTime: DateTime.now(), model: 0);
+        }
+        return LearningTime.fromJson(item);
       }).toList(),
     );
   }
