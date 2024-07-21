@@ -653,13 +653,30 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<String> getDailyGoal(String uid) async {
-    String v;
-    v = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .get()
-        .then((value) => value.data()!['dailyGoal']);
-    return v;
+    String result = '';
+    try {
+      // Access Firestore collection 'users'
+      String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: currentUserEmail)
+              .get();
+
+      querySnapshot.docs.forEach((doc) async {
+        String uid = doc.data()['uid'];
+
+        result = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get()
+            .then((value) => value.data()!['dailyGoal']);
+      });
+    } catch (error) {
+      print("Error fetching data: $error");
+      rethrow;
+    }
+    return result;
   }
 
   Future<void> updateDailyGoal(int dailyGoal) async {
@@ -842,18 +859,13 @@ class UserProvider extends ChangeNotifier {
         savedLearningTime.forEach((phraseData) {
           DateTime start = phraseData['startTime'].toDate();
           DateTime end = phraseData['endTime'].toDate();
-          int duration = 0;
+
           if (start.year == dt.year &&
               start.month == dt.month &&
               start.day == dt.day) {
             LearningTime phrase = LearningTime(
                 startTime: start, endTime: end, model: phraseData['model']);
             savedLearning.add(phrase);
-
-            duration = end.difference(start).inSeconds;
-            if (duration > 0) {
-              totalSeconds += duration;
-            }
           }
         });
       });
@@ -862,13 +874,6 @@ class UserProvider extends ChangeNotifier {
           uid: uid, savedLearningTime: savedLearning, dailyGoal: dailyGobal);
 
       _userLearningProgress = data;
-
-      if (totalSeconds > 0) {
-        result = totalSeconds / 60;
-        // var date = new DateTime.fromMicrosecondsSinceEpoch(totalSeconds * 1000);
-
-        // timeToSeconds = DateFormat('m:ss').format(date);
-      }
     } catch (error) {
       print("Error fetching data: $error");
       rethrow;

@@ -160,8 +160,6 @@ class _SettingPageState extends ConsumerState<SettingPage> {
   void _saveStudyGoal() {
     ref.read(studyGoalProvider.notifier).setStudyGoal(_studyGoal);
     print('Saving study goal: $_studyGoal Mins');
-
-    //String currentGobal =  userRepo.getDailyGoal(userRepo.uid) as String;
     final user = ref.read(userProvider.notifier);
 
     if (_studyGoal > 0) {
