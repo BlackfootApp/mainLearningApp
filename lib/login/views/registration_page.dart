@@ -52,7 +52,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         Navigator.pop(context);
         UserCredential? userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
-                email: emailController.text, password: passwordController.text);
+                email: emailController.text.toLowerCase(),
+                password: passwordController.text);
         if (userCredential.user != null) {
           await userProvide.createUserInDb(
               UserModel(
@@ -66,7 +67,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 dailyGoal: 30,
                 heart: 0,
                 userName: userNameController.text.split('@').first,
-                email: emailController.text,
+                email: emailController.text.toLowerCase(),
                 savedWords: [],
                 savedPhrases: [],
                 savedLearningTime: [],
