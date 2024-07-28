@@ -96,8 +96,9 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
     int learningSeconds = (totalSeconds - learningMins * 60).toInt();
     learningTime = learningMins + learningSeconds / 100;
     if (learningMins < 100) {
-      learningTimeStr =
-          learningMins.toString() + ':' + (learningSeconds).toString();
+      learningTimeStr = learningMins.toString() +
+          ':' +
+          (learningSeconds).toString().padLeft(2, '0');
     } else {
       learningTimeStr = learningMins.toString();
     }
