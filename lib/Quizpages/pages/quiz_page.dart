@@ -5,6 +5,7 @@ import 'package:bfootlearn/components/color_file.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../LearningTime/models/learning_time.dart';
 import '../../Phrases/provider/mediaProvider.dart';
 import '../../riverpod/river_pod.dart';
 import 'quiz_result_page.dart';
@@ -25,7 +26,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
   List<String> selectedSeries = [];
   late AudioPlayer player = ref.watch(audioPlayerProvider);
   bool isPlaying = false;
-
+  DateTime start = DateTime.now();
   @override
   void initState() {
     super.initState();
@@ -213,6 +214,14 @@ class _QuizPageState extends ConsumerState<QuizPage> {
     );
   }
 
+  void saveTime() {
+    final userRepo = ref.watch(userProvider);
+    LearningTime time =
+        new LearningTime(startTime: start, endTime: DateTime.now(), model: 3);
+
+    userRepo.saveLearningTime(time);
+  }
+
   void updateIsQuestionAnswered() {
     setState(() {
       _isQuestionAnswered = List.generate(
@@ -237,6 +246,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
                   await player.stop();
                 }
                 isPlaying = false;
+                saveTime();
                 Navigator.of(context).pop(true);
               },
               child: const Text("Yes"),

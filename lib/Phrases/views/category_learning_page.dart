@@ -3,10 +3,10 @@ import 'package:bfootlearn/Phrases/widgets/card_slider.dart';
 import 'package:bfootlearn/components/color_file.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/vocabulary/viwes/v_game.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import '../../LearningTime/models/learning_time.dart';
+import '../../User/user_provider.dart';
 import '../../riverpod/river_pod.dart';
 
 class LearningPage extends ConsumerStatefulWidget {
@@ -27,12 +27,30 @@ class LearningPage extends ConsumerStatefulWidget {
 
 class _LearningPageState extends ConsumerState<LearningPage> {
   int? currentPlayingIndex;
+  final DateTime start = DateTime.now();
+  late UserProvider userProvide;
+  @override
+  void initState() {
+    userProvide = ref.read(userProvider);
+  }
+
+  void saveLearningTime() async {
+    LearningTime time =
+        new LearningTime(startTime: start, endTime: DateTime.now(), model: 4);
+
+    await userProvide.saveLearningTime(time);
+  }
+
+  @override
+  dispose() {
+    saveLearningTime();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = ref.watch(themeProvider);
     final blogProviderObj = ref.watch(blogProvider);
-    final userProvide = ref.watch(userProvider);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -75,9 +93,8 @@ class _LearningPageState extends ConsumerState<LearningPage> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => VocabularyGame(
-                                      category: widget.seriesName,
-                                      uid: userProvide.uid
-                                    ),
+                                        category: widget.seriesName,
+                                        uid: userProvide.uid),
                                   ),
                                 );
                               },

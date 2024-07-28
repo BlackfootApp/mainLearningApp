@@ -52,7 +52,7 @@ class UserProvider extends ChangeNotifier {
           rank: 0,
           dailyGoal: 0,
           heart: 0,
-          joinedDate: '',
+          joinedDate: DateTime.now().toString(),
           savedWords: [],
           savedPhrases: [],
           savedLearningTime: [],
@@ -287,14 +287,14 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<UserModel> getUserProfile(String uid) async {
-    DocumentSnapshot documentSnapshot =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    if (documentSnapshot.exists) {
-      final user =
-          UserModel.fromJson(documentSnapshot.data() as Map<String, dynamic>);
-      return user;
-    }
-    return UserModel(
+    String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+    QuerySnapshot<Map<String, dynamic>> querySnapshot = await FirebaseFirestore
+        .instance
+        .collection('users')
+        .where('email', isEqualTo: currentUserEmail)
+        .get();
+
+    UserModel user = new UserModel(
       badge: CardBadge(
           kinship: false,
           direction: false,
@@ -309,13 +309,23 @@ class UserProvider extends ChangeNotifier {
       rank: 0,
       dailyGoal: 0,
       heart: 0,
-      joinedDate: '',
+      joinedDate: DateTime.now().toString(),
       savedWords: [],
       savedPhrases: [],
       savedLearningTime: [],
       userName: '',
       email: '',
-    ); // Return a default UserModel when the document doesn't exist
+    ); // Return a default UserModel when the document doesn't exist;
+    querySnapshot.docs.forEach((doc) async {
+      String uid = doc.data()['uid'];
+      DocumentSnapshot documentSnapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (documentSnapshot.exists) {
+        user =
+            UserModel.fromJson(documentSnapshot.data() as Map<String, dynamic>);
+      }
+    });
+    return user;
   }
 
   Future<void> updateBadge(String uid, CardBadge badge) async {
@@ -726,14 +736,25 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<void> getBadge(String uid) async {
-    //_badge = await FirebaseFirestore.instance.collection('users').doc(uid).get().then((value) => value.data()!['badge']);
-    await FirebaseFirestore.instance
+    String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+    QuerySnapshot<Map<String, dynamic>> querySnapshot = await FirebaseFirestore
+        .instance
         .collection('users')
-        .doc(uid)
-        .get()
-        .then((value) {
-      _badge = CardBadge.fromJson(value.data()!['badge']);
+        .where('email', isEqualTo: currentUserEmail)
+        .get();
+
+    querySnapshot.docs.forEach((doc) {
+      String uid = doc.data()['uid'];
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get()
+          .then((value) {
+        _badge = CardBadge.fromJson(value.data()!['badge']);
+      });
     });
+
+    //_badge = await FirebaseFirestore.instance.collection('users').doc(uid).get().then((value) => value.data()!['badge']);
   }
 
   // Future<void> changePhotoUrl(String uid, String photoUrl) async {
@@ -811,7 +832,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void saveLearningTime(LearningTime learningTime) async {
+  Future<void> saveLearningTime(LearningTime learningTime) async {
     try {
       // Access Firestore collection 'users'
       String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;

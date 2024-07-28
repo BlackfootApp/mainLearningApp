@@ -16,6 +16,8 @@ import 'package:flip_card/flip_card.dart';
 import 'package:lottie/lottie.dart';
 import '../../Phrases/views/category_learning_page.dart';
 import '../../User/user_model.dart';
+import '../../LearningTime/models/learning_time.dart';
+import '../../User/user_provider.dart';
 
 class FlashCradPage extends ConsumerStatefulWidget {
   String category;
@@ -43,12 +45,16 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
   Map<String, Map<String, dynamic>> categoryValues = {};
 
   late ConfettiController _controllerCenter;
+  late UserProvider userRepo;
+  late DateTime start;
 
   @override
   void initState() {
-    final userRepo = ref.read(userProvider);
+    start = DateTime.now();
+    userRepo = ref.read(userProvider);
     final vocaProvide = ref.read(vocaProvider);
     final blogProviderObj = ref.read(blogProvider);
+
     //vocaProvide.titleId = widget.category;
     score = userRepo.score;
     vocaProvide.score = score;
@@ -71,9 +77,17 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
 
   @override
   dispose() {
+    saveLearningTime();
     _controllerCenter.dispose();
     lottieController.dispose();
     super.dispose();
+  }
+
+  void saveLearningTime() async {
+    LearningTime time =
+        new LearningTime(startTime: start, endTime: DateTime.now(), model: 1);
+
+    await userRepo.saveLearningTime(time);
   }
 
   // setNewBadge(String category){

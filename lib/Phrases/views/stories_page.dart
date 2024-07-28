@@ -4,6 +4,8 @@ import 'package:bfootlearn/components/color_file.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import '../../LearningTime/models/learning_time.dart';
+import '../../User/user_provider.dart';
 
 class StoriesPage extends StatefulWidget {
   const StoriesPage({super.key});
@@ -106,6 +108,8 @@ class _StoryAudioPlayerState extends State<StoryAudioPlayer> {
   bool isPlaying = false;
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
+  late UserProvider userRepo;
+  late DateTime start;
 
   String formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
@@ -121,6 +125,8 @@ class _StoryAudioPlayerState extends State<StoryAudioPlayer> {
 
   @override
   void initState() {
+    start = DateTime.now();
+    userRepo = new UserProvider();
     super.initState();
     setAudio();
 
@@ -145,8 +151,16 @@ class _StoryAudioPlayerState extends State<StoryAudioPlayer> {
 
   @override
   void dispose() {
+    saveLearningTime();
     audioPlayer.dispose();
     super.dispose();
+  }
+
+  void saveLearningTime() async {
+    LearningTime time =
+        new LearningTime(startTime: start, endTime: DateTime.now(), model: 2);
+
+    await userRepo.saveLearningTime(time);
   }
 
   @override

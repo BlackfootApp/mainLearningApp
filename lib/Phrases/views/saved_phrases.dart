@@ -1,6 +1,8 @@
 import 'package:bfootlearn/Phrases/widgets/card_slider.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/riverpod/river_pod.dart';
+import '../../LearningTime/models/learning_time.dart';
+import '../../User/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,6 +14,26 @@ class SavedPage extends ConsumerStatefulWidget {
 
 class _SavedPageState extends ConsumerState<SavedPage> {
   int? currentPlayingIndex;
+  final DateTime start = DateTime.now();
+  late UserProvider userProvide;
+
+  @override
+  void initState() {
+    userProvide = ref.read(userProvider);
+  }
+
+  void saveLearningTime() async {
+    LearningTime time =
+        new LearningTime(startTime: start, endTime: DateTime.now(), model: 5);
+
+    await userProvide.saveLearningTime(time);
+  }
+
+  @override
+  dispose() {
+    saveLearningTime();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
