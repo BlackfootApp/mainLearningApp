@@ -1,8 +1,13 @@
 class LearningTime {
   final DateTime startTime;
   final DateTime endTime;
-  final int
-      model; //learning time model:   1: vocabulary  2: stories 3:quiz  4:categories  5: saved phrases
+  // Learning time model:
+  // 1: vocabulary
+  // 2: stories
+  // 3:quiz
+  // 4:categories
+  // 5: saved phrases
+  final int model;
 
   LearningTime({
     required this.startTime,

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/commitment_time/study_goal_provider.dart';
-
+import "package:collection/collection.dart";
+import 'package:intl/intl.dart';
+import '../LearningTime/models/learning_time.dart';
 import '../riverpod/river_pod.dart';
 
 class LearningGoalPage extends ConsumerStatefulWidget {
@@ -13,12 +15,12 @@ class LearningGoalPage extends ConsumerStatefulWidget {
 }
 
 class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
-  List<bool> _completedGoals = [true, false, true, false, true, false, false];
-
+  List<bool> _completedGoals = [];
+  int totalDays = 0;
   @override
   void initState() {
-    super.initState();
     _fetchLearningTimeData();
+    super.initState();
   }
 
   Future<void> _fetchLearningTimeData() async {
@@ -26,6 +28,24 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
 
     await user.getSavedLearningTime(DateTime.now());
     setState(() {});
+  }
+
+  List<String> GetDateList() {
+    DateTime dt = DateTime.now();
+    // Weekday constants that are returned by [weekday] method:
+    // static const int monday = 1;
+    // static const int tuesday = 2;
+    // static const int wednesday = 3;
+    // static const int thursday = 4;
+    // static const int friday = 5;
+    // static const int saturday = 6;
+    // static const int sunday = 7;
+    List<String> list = [];
+    for (int i = 1; i < 8; i++) {
+      int day = dt.weekday - i;
+      list.add(DateFormat('yyyy-MM-dd').format(dt.add(Duration(days: -day))));
+    }
+    return list;
   }
 
   @override
@@ -38,12 +58,14 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
     double totalSeconds = 0;
     final user = ref.watch(userProvider);
     final data = user.getUserSavedLearningData();
+    final history = user.getUserSavedLearningHistory();
 
     dailyGoal = data.dailyGoal ?? 30;
 
     if (studyGoal > 0 && studyGoal != studyGoal) {
       studyGoal = dailyGoal;
     }
+
     data.savedLearningTime.forEach((phraseData) {
       DateTime start = phraseData.startTime;
       DateTime end = phraseData.endTime;
@@ -54,10 +76,31 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
         totalSeconds += duration;
       }
     });
+
+    var hisotryData = groupBy(history.savedLearningTime,
+        (LearningTime obj) => DateFormat('yyyy-MM-dd').format(obj.startTime));
+
+    totalDays = hisotryData.length;
+    List<String> weekDays = GetDateList();
+    _completedGoals = [];
+    for (final d in weekDays) {
+      if (hisotryData.containsKey(d))
+        _completedGoals.add(true);
+      else
+        _completedGoals.add(false);
+    }
+
     double learningTime = 0;
+    String learningTimeStr = '0:00';
     int learningMins = (totalSeconds / 60).toInt();
     int learningSeconds = (totalSeconds - learningMins * 60).toInt();
     learningTime = learningMins + learningSeconds / 100;
+    if (learningMins < 100) {
+      learningTimeStr =
+          learningMins.toString() + ':' + (learningSeconds).toString();
+    } else {
+      learningTimeStr = learningMins.toString();
+    }
 
     return Scaffold(
       appBar: customAppBar(context: context, title: 'Learning Goal'),
@@ -66,14 +109,14 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildLearningProgress(
-                studyGoal, screenWidth, screenHeight, learningTime),
+            _buildLearningProgress(studyGoal, screenWidth, screenHeight,
+                learningTime, learningTimeStr),
             const SizedBox(height: 60),
             _buildLearningSettings(),
             const SizedBox(height: 80),
             _buildWeekdaysIndicator(),
             const SizedBox(height: 30),
-            _buildLearningDaysCount(),
+            _buildLearningDaysCount(totalDays),
           ],
         ),
       ),
@@ -100,7 +143,7 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
             ),
             child: Center(
               child: Text(
-                ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][index],
+                ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'][index],
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
@@ -114,7 +157,7 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
   }
 
   Widget _buildLearningProgress(int studyGoal, double screenWidth,
-      double screenHeight, double learningTime) {
+      double screenHeight, double learningTime, String learningTimeStr) {
     double progress = learningTime / studyGoal;
     if (learningTime > studyGoal) {
       progress = 1;
@@ -143,13 +186,13 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
               alignment: Alignment.center,
               children: [
                 CustomPaint(
-                  size: Size(screenWidth * 0.7, screenWidth * 0.4), // 半圆形
+                  size: Size(screenWidth * 0.7, screenWidth * 0.4),
                   painter: SemicircularProgressPainter(progress),
                 ),
                 Positioned(
                   top: screenWidth * 0.1,
                   child: Text(
-                    learningTime.toString(),
+                    learningTimeStr,
                     style: const TextStyle(
                       fontSize: 80,
                       fontWeight: FontWeight.w900,
@@ -182,9 +225,9 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
     );
   }
 
-  Widget _buildLearningDaysCount() {
-    return const Text(
-      "You've been studying for 5 days.",
+  Widget _buildLearningDaysCount(int total_days) {
+    return Text(
+      "You've been studying for $total_days days.",
       style: TextStyle(
         fontSize: 25,
         fontWeight: FontWeight.w900,

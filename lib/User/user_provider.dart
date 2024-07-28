@@ -30,6 +30,9 @@ class UserProvider extends ChangeNotifier {
   SavedLearningData _userLearningProgress =
       SavedLearningData(uid: '', savedLearningTime: [], dailyGoal: 30);
 
+  SavedLearningData _userLearningHistory =
+      SavedLearningData(uid: '', savedLearningTime: [], dailyGoal: 30);
+
   UserProvider()
       : _badge = CardBadge(
             kinship: false,
@@ -68,6 +71,10 @@ class UserProvider extends ChangeNotifier {
 
   SavedLearningData getUserSavedLearningData() {
     return _userLearningProgress;
+  }
+
+  SavedLearningData getUserSavedLearningHistory() {
+    return _userLearningHistory;
   }
 
   CardBadge _badge;
@@ -858,7 +865,7 @@ class UserProvider extends ChangeNotifier {
 
   Future<void> getSavedLearningTime(DateTime dt) async {
     List<LearningTime> savedLearning = [];
-
+    List<LearningTime> savedLearningHisotry = [];
     double result = 0;
     String uid = '';
     int dailyGobal = 0;
@@ -880,21 +887,26 @@ class UserProvider extends ChangeNotifier {
         savedLearningTime.forEach((phraseData) {
           DateTime start = phraseData['startTime'].toDate();
           DateTime end = phraseData['endTime'].toDate();
-
+          LearningTime phrase = LearningTime(
+              startTime: start, endTime: end, model: phraseData['model']);
           if (start.year == dt.year &&
               start.month == dt.month &&
               start.day == dt.day) {
-            LearningTime phrase = LearningTime(
-                startTime: start, endTime: end, model: phraseData['model']);
             savedLearning.add(phrase);
           }
+
+          savedLearningHisotry.add(phrase);
         });
       });
 
-      SavedLearningData data = SavedLearningData(
+      _userLearningProgress = SavedLearningData(
           uid: uid, savedLearningTime: savedLearning, dailyGoal: dailyGobal);
 
-      _userLearningProgress = data;
+      _userLearningHistory = SavedLearningData(
+          uid: uid,
+          savedLearningTime: savedLearningHisotry,
+          dailyGoal: dailyGobal);
+      ;
     } catch (error) {
       print("Error fetching data: $error");
       rethrow;
