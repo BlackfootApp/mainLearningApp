@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../LearningTime/models/learning_time.dart';
 import '../../User/user_provider.dart';
+import '../../commitment_time/Achievement.dart';
 import '../../riverpod/river_pod.dart';
 
 class LearningPage extends ConsumerStatefulWidget {
@@ -29,9 +30,14 @@ class _LearningPageState extends ConsumerState<LearningPage> {
   int? currentPlayingIndex;
   final DateTime start = DateTime.now();
   late UserProvider userProvide;
+  int totalSeconds = 0;
+  int dailyGoalInSeconds = 0;
+  bool isPopupCongratsPage = false;
   @override
   void initState() {
     userProvide = ref.read(userProvider);
+    _fetchLearningTimeData();
+    super.initState();
   }
 
   void saveLearningTime() async {
@@ -45,6 +51,23 @@ class _LearningPageState extends ConsumerState<LearningPage> {
   dispose() {
     saveLearningTime();
     super.dispose();
+  }
+
+  Future<void> _fetchLearningTimeData() async {
+    await userProvide.getSavedLearningTime(DateTime.now());
+    totalSeconds = userProvide.getUserTodayLearningTime();
+    dailyGoalInSeconds = userProvide.getUserDailyGoalInSeconds();
+    isPopupCongratsPage = userProvide.getUserIsPopUpCongratsPage();
+    if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
+      userProvide.updateIsPopupCongratsPage(true);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CongratulationPage(message: 'Awesome!'),
+        ),
+      );
+    }
   }
 
   @override

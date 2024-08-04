@@ -164,15 +164,8 @@ class _SettingPageState extends ConsumerState<SettingPage> {
 
     if (_studyGoal > 0) {
       user.updateDailyGoal(_studyGoal);
+      user.updateIsPopupCongratsPage(false);
     }
     ref.read(studyGoalProvider.notifier).setStudyGoal(_studyGoal);
-
-    Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CongratulationPage(message: 'Awesome!'),
-      ),
-    );
   }
 }

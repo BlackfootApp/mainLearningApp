@@ -27,11 +27,17 @@ class UserProvider extends ChangeNotifier {
 
   String _username = "";
   String _joinDate = "";
-  SavedLearningData _userLearningProgress =
-      SavedLearningData(uid: '', savedLearningTime: [], dailyGoal: 30);
+  SavedLearningData _userLearningProgress = SavedLearningData(
+      uid: '',
+      savedLearningTime: [],
+      dailyGoal: 30,
+      isPopupCongratsPage: false);
 
-  SavedLearningData _userLearningHistory =
-      SavedLearningData(uid: '', savedLearningTime: [], dailyGoal: 30);
+  SavedLearningData _userLearningHistory = SavedLearningData(
+      uid: '',
+      savedLearningTime: [],
+      dailyGoal: 30,
+      isPopupCongratsPage: false);
 
   UserProvider()
       : _badge = CardBadge(
@@ -73,12 +79,37 @@ class UserProvider extends ChangeNotifier {
     return _userLearningProgress;
   }
 
+  int getUserDailyGoalInSeconds() {
+    return _userLearningProgress.dailyGoal * 60;
+  }
+
+  bool getUserIsPopUpCongratsPage() {
+    return _userLearningProgress.isPopupCongratsPage;
+  }
+
+  int getUserTodayLearningTime() {
+    int totalSeconds = 0;
+
+    _userLearningProgress.savedLearningTime.forEach((data) {
+      DateTime start = data.startTime;
+      DateTime end = data.endTime;
+      int duration = 0;
+
+      duration = end.difference(start).inSeconds;
+      if (duration > 0) {
+        totalSeconds += duration;
+      }
+    });
+
+    return totalSeconds;
+  }
+
   SavedLearningData getUserSavedLearningHistory() {
     return _userLearningHistory;
   }
 
   CardBadge _badge;
-
+  bool isMeetDailyGobal = false;
   List<SavedWords> _savedWords = [];
   List<CardData> _savedPhrases = [];
   List<LearningTime> _savedLearningTime = [];
@@ -719,6 +750,29 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> updateIsPopupCongratsPage(bool isPopupCongratsPage) async {
+    try {
+      // Access Firestore collection 'users'
+      String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: currentUserEmail)
+              .get();
+
+      querySnapshot.docs.forEach((doc) {
+        String uid = doc.data()['uid'];
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .update({'isPopupCongratsPage': isPopupCongratsPage});
+      });
+    } catch (error) {
+      print("Error fetching data: $error");
+      rethrow;
+    }
+  }
+
   Future<void> incrementHeart(String uid) async {
     DocumentSnapshot documentSnapshot =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
@@ -869,6 +923,7 @@ class UserProvider extends ChangeNotifier {
     double result = 0;
     String uid = '';
     int dailyGobal = 0;
+    bool isPopupCongratsPage = false;
     int totalSeconds = 0;
     try {
       // Access Firestore collection 'users'
@@ -882,6 +937,7 @@ class UserProvider extends ChangeNotifier {
       querySnapshot.docs.forEach((doc) {
         List<dynamic> savedLearningTime = doc.data()['savedLearningTime'];
         dailyGobal = doc.data()['dailyGoal'] ?? 0;
+        isPopupCongratsPage = doc.data()['isPopupCongratsPage'] ?? false;
         uid = doc.data()['uid'];
 
         savedLearningTime.forEach((phraseData) {
@@ -900,12 +956,16 @@ class UserProvider extends ChangeNotifier {
       });
 
       _userLearningProgress = SavedLearningData(
-          uid: uid, savedLearningTime: savedLearning, dailyGoal: dailyGobal);
+          uid: uid,
+          savedLearningTime: savedLearning,
+          dailyGoal: dailyGobal,
+          isPopupCongratsPage: isPopupCongratsPage);
 
       _userLearningHistory = SavedLearningData(
           uid: uid,
           savedLearningTime: savedLearningHisotry,
-          dailyGoal: dailyGobal);
+          dailyGoal: dailyGobal,
+          isPopupCongratsPage: isPopupCongratsPage);
       ;
     } catch (error) {
       print("Error fetching data: $error");

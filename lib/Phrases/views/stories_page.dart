@@ -4,8 +4,10 @@ import 'package:bfootlearn/components/color_file.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../LearningTime/models/learning_time.dart';
 import '../../User/user_provider.dart';
+import '../../commitment_time/Achievement.dart';
 
 class StoriesPage extends StatefulWidget {
   const StoriesPage({super.key});
@@ -110,6 +112,9 @@ class _StoryAudioPlayerState extends State<StoryAudioPlayer> {
   Duration position = Duration.zero;
   late UserProvider userRepo;
   late DateTime start;
+  int totalSeconds = 0;
+  int dailyGoalInSeconds = 0;
+  bool isPopupCongratsPage = false;
 
   String formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
@@ -127,6 +132,7 @@ class _StoryAudioPlayerState extends State<StoryAudioPlayer> {
   void initState() {
     start = DateTime.now();
     userRepo = new UserProvider();
+    _fetchLearningTimeData();
     super.initState();
     setAudio();
 
@@ -147,6 +153,22 @@ class _StoryAudioPlayerState extends State<StoryAudioPlayer> {
         position = event;
       });
     });
+  }
+
+  Future<void> _fetchLearningTimeData() async {
+    await userRepo.getSavedLearningTime(DateTime.now());
+    totalSeconds = userRepo.getUserTodayLearningTime();
+    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+    isPopupCongratsPage = userRepo.getUserIsPopUpCongratsPage();
+    if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
+      userRepo.updateIsPopupCongratsPage(true);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CongratulationPage(message: 'Awesome!'),
+        ),
+      );
+    }
   }
 
   @override

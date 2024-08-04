@@ -18,6 +18,7 @@ import '../../Phrases/views/category_learning_page.dart';
 import '../../User/user_model.dart';
 import '../../LearningTime/models/learning_time.dart';
 import '../../User/user_provider.dart';
+import '../../commitment_time/Achievement.dart';
 
 class FlashCradPage extends ConsumerStatefulWidget {
   String category;
@@ -47,6 +48,9 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
   late ConfettiController _controllerCenter;
   late UserProvider userRepo;
   late DateTime start;
+  int totalSeconds = 0;
+  int dailyGoalInSeconds = 0;
+  bool isPopupCongratsPage = false;
 
   @override
   void initState() {
@@ -72,6 +76,7 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
         ConfettiController(duration: const Duration(seconds: 10));
     lottieController =
         AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _fetchLearningTimeData();
     super.initState();
   }
 
@@ -88,6 +93,23 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
         new LearningTime(startTime: start, endTime: DateTime.now(), model: 1);
 
     await userRepo.saveLearningTime(time);
+  }
+
+  Future<void> _fetchLearningTimeData() async {
+    await userRepo.getSavedLearningTime(DateTime.now());
+    totalSeconds = userRepo.getUserTodayLearningTime();
+    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+    isPopupCongratsPage = userRepo.getUserIsPopUpCongratsPage();
+    if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
+      userRepo.updateIsPopupCongratsPage(true);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CongratulationPage(message: 'Awesome!'),
+        ),
+      );
+    }
   }
 
   // setNewBadge(String category){
