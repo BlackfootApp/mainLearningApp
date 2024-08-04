@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../LearningTime/models/learning_time.dart';
 import '../../Phrases/provider/mediaProvider.dart';
+import '../../commitment_time/Achievement.dart';
 import '../../riverpod/river_pod.dart';
 import 'quiz_result_page.dart';
 
@@ -27,6 +28,10 @@ class _QuizPageState extends ConsumerState<QuizPage> {
   late AudioPlayer player = ref.watch(audioPlayerProvider);
   bool isPlaying = false;
   DateTime start = DateTime.now();
+  int totalSeconds = 0;
+  int dailyGoalInSeconds = 0;
+  bool isPopupCongratsPage = false;
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +40,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
   }
 
   Future<void> _showSeriesSelectionDialog() async {
+    _fetchLearningTimeData();
     List<Map<String, dynamic>> seriesOptions =
         await ref.read(blogProvider).getSeriesOptions();
     List<bool> isSelected =
@@ -220,6 +226,23 @@ class _QuizPageState extends ConsumerState<QuizPage> {
         new LearningTime(startTime: start, endTime: DateTime.now(), model: 3);
 
     userRepo.saveLearningTime(time);
+  }
+
+  Future<void> _fetchLearningTimeData() async {
+    final userRepo = ref.read(userProvider);
+    await userRepo.getSavedLearningTime(DateTime.now());
+    totalSeconds = userRepo.getUserTodayLearningTime();
+    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+    isPopupCongratsPage = userRepo.getUserIsPopUpCongratsPage();
+    if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
+      userRepo.updateIsPopupCongratsPage(true);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CongratulationPage(message: 'Awesome!'),
+        ),
+      );
+    }
   }
 
   void updateIsQuestionAnswered() {

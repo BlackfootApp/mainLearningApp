@@ -55,27 +55,15 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
     final screenHeight = MediaQuery.of(context).size.height;
     int dailyGoal = 0;
 
-    double totalSeconds = 0;
     final user = ref.watch(userProvider);
     final data = user.getUserSavedLearningData();
     final history = user.getUserSavedLearningHistory();
-
+    int totalSeconds = user.getUserTodayLearningTime();
     dailyGoal = data.dailyGoal ?? 30;
 
     if (studyGoal > 0 && studyGoal != studyGoal) {
       studyGoal = dailyGoal;
     }
-
-    data.savedLearningTime.forEach((phraseData) {
-      DateTime start = phraseData.startTime;
-      DateTime end = phraseData.endTime;
-      int duration = 0;
-
-      duration = end.difference(start).inSeconds;
-      if (duration > 0) {
-        totalSeconds += duration;
-      }
-    });
 
     var hisotryData = groupBy(history.savedLearningTime,
         (LearningTime obj) => DateFormat('yyyy-MM-dd').format(obj.startTime));
