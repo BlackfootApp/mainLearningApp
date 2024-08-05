@@ -33,7 +33,7 @@ class _SettingPageState extends ConsumerState<SettingPage> {
       body: Column(
         children: [
           Image.asset(
-            'assets/settingPage.png',
+            'assets/settingPage.jpg',
             height: MediaQuery.of(context).size.height * 0.25,
             width: MediaQuery.of(context).size.width,
             fit: BoxFit.cover,
