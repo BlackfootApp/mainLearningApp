@@ -167,5 +167,21 @@ class _SettingPageState extends ConsumerState<SettingPage> {
       user.updateIsPopupCongratsPage(false);
     }
     ref.read(studyGoalProvider.notifier).setStudyGoal(_studyGoal);
+
+    // user.getSavedLearningTime(DateTime.now());
+
+    // int dailyGoalInSeconds = user.getUserDailyGoalInSeconds();
+    // int goal = (dailyGoalInSeconds / 60).toInt();
+    // int totalDays = user.getUserTotalLearningDays();
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => CongratulationPage(
+    //       message: 'Awesome!',
+    //       totalDays: totalDays,
+    //       dailyGloal: goal,
+    //     ),
+    //   ),
+    // );
   }
 }

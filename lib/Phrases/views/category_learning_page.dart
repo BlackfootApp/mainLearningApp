@@ -60,11 +60,16 @@ class _LearningPageState extends ConsumerState<LearningPage> {
     isPopupCongratsPage = userProvide.getUserIsPopUpCongratsPage();
     if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
       userProvide.updateIsPopupCongratsPage(true);
-
+      int goal = (dailyGoalInSeconds / 60).toInt();
+      int totalDays = userProvide.getUserTotalLearningDays();
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const CongratulationPage(message: 'Awesome!'),
+          builder: (context) => CongratulationPage(
+            message: 'Awesome!',
+            totalDays: totalDays,
+            dailyGloal: goal,
+          ),
         ),
       );
     }

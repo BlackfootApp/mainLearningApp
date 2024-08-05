@@ -45,10 +45,17 @@ class _SavedPageState extends ConsumerState<SavedPage> {
     if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
       userProvide.updateIsPopupCongratsPage(true);
 
+      int dailyGoalInSeconds = userProvide.getUserDailyGoalInSeconds();
+      int goal = (dailyGoalInSeconds / 60).toInt();
+      int totalDays = userProvide.getUserTotalLearningDays();
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const CongratulationPage(message: 'Awesome!'),
+          builder: (context) => CongratulationPage(
+            message: 'Awesome!',
+            totalDays: totalDays,
+            dailyGloal: goal,
+          ),
         ),
       );
     }

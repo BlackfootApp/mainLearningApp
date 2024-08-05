@@ -231,15 +231,24 @@ class _QuizPageState extends ConsumerState<QuizPage> {
   Future<void> _fetchLearningTimeData() async {
     final userRepo = ref.read(userProvider);
     await userRepo.getSavedLearningTime(DateTime.now());
+
     totalSeconds = userRepo.getUserTodayLearningTime();
     dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
     isPopupCongratsPage = userRepo.getUserIsPopUpCongratsPage();
     if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
       userRepo.updateIsPopupCongratsPage(true);
+
+      int dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+      int goal = (dailyGoalInSeconds / 60).toInt();
+      int totalDays = userRepo.getUserTotalLearningDays();
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const CongratulationPage(message: 'Awesome!'),
+          builder: (context) => CongratulationPage(
+            message: 'Awesome!',
+            totalDays: totalDays,
+            dailyGloal: goal,
+          ),
         ),
       );
     }

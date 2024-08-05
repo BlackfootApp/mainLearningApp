@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
-
+import "package:collection/collection.dart";
 import '../LearningTime/models/learning_time.dart';
 import '../LearningTime/models/saved_LearningData.dart';
 
@@ -106,6 +106,12 @@ class UserProvider extends ChangeNotifier {
 
   SavedLearningData getUserSavedLearningHistory() {
     return _userLearningHistory;
+  }
+
+  int getUserTotalLearningDays() {
+    var hisotryData = groupBy(_userLearningHistory.savedLearningTime,
+        (LearningTime obj) => DateFormat('yyyy-MM-dd').format(obj.startTime));
+    return hisotryData.length;
   }
 
   CardBadge _badge;

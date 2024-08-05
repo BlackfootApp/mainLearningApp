@@ -1,12 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:share_plus/share_plus.dart';
+import "package:collection/collection.dart";
+import '../LearningTime/models/learning_time.dart';
+import '../User/user_provider.dart';
+import '../riverpod/river_pod.dart';
 
 class CongratulationPage extends StatelessWidget {
   final String message;
-  const CongratulationPage({Key? key, required this.message}) : super(key: key);
+  int dailyGloal = 30;
+  int totalDays = 1;
+  CongratulationPage(
+      {Key? key,
+      required this.message,
+      required this.dailyGloal,
+      required this.totalDays})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +70,13 @@ class CongratulationPage extends StatelessWidget {
                 SizedBox(height: 100),
                 ElevatedButton.icon(
                   onPressed: () {
-                    //Navigator.of(context).pop(); // 关闭界面
+                    final text =
+                        'I just completed my daily goal: $dailyGloal minutes on I\'poyít. I also completed $totalDays days learning. Can you beat me?'
+                        ' Come join me and let\'s see! https://play.google.com/store/apps/details?id=com.bfootlearn.bfootlearn';
+                    final result = Share.share(text);
+                    // if (result.status == ShareResultStatus.success) {
+                    //    print('score shared');
+                    //  }
                   },
                   icon: Icon(Icons.share, color: Colors.white),
                   label: const Text(
@@ -79,13 +97,13 @@ class CongratulationPage extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          Positioned.fill(
-            child: Lottie.asset(
-              'assets/confetti.json', // Replace with actual file path
-              fit: BoxFit.cover,
-            ),
-          ),
+          )
+          // Positioned.fill(
+          //   child: Lottie.asset(
+          //     'assets/confetti.json', // Replace with actual file path
+          //     fit: BoxFit.cover,
+          //   ),
+          //),
         ],
       ),
     );
@@ -96,6 +114,8 @@ void main() {
   runApp(MaterialApp(
     home: CongratulationPage(
       message: 'You have completed your daily learning goal!',
+      dailyGloal: 1,
+      totalDays: 30,
     ),
   ));
 }

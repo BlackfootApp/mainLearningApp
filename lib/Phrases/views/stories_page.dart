@@ -162,10 +162,17 @@ class _StoryAudioPlayerState extends State<StoryAudioPlayer> {
     isPopupCongratsPage = userRepo.getUserIsPopUpCongratsPage();
     if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
       userRepo.updateIsPopupCongratsPage(true);
+      int dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+      int goal = (dailyGoalInSeconds / 60).toInt();
+      int totalDays = userRepo.getUserTotalLearningDays();
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const CongratulationPage(message: 'Awesome!'),
+          builder: (context) => CongratulationPage(
+            message: 'Awesome!',
+            totalDays: totalDays,
+            dailyGloal: goal,
+          ),
         ),
       );
     }
