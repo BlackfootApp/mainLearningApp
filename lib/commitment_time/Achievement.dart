@@ -71,7 +71,7 @@ class CongratulationPage extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: () {
                     final text =
-                        'I just completed my daily goal: $dailyGloal minutes on I\'poyít. I also completed $totalDays days learning. Can you beat me?'
+                        'I completed my daily goal of $dailyGloal minutes on I\'poyít, and I have studied for a total of $totalDays days.'
                         ' Come join me and let\'s see! https://play.google.com/store/apps/details?id=com.bfootlearn.bfootlearn';
                     final result = Share.share(text);
                     // if (result.status == ShareResultStatus.success) {
