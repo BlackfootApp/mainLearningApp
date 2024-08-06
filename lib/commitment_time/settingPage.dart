@@ -6,10 +6,10 @@ import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/commitment_time/study_goal_provider.dart';
 import '../LearningTime/models/learning_time.dart';
 import '../riverpod/river_pod.dart';
+import 'learningGoal_page.dart';
 
 class SettingPage extends ConsumerStatefulWidget {
   SettingPage({super.key});
-
   @override
   _SettingPageState createState() => _SettingPageState();
 }
@@ -161,27 +161,50 @@ class _SettingPageState extends ConsumerState<SettingPage> {
     ref.read(studyGoalProvider.notifier).setStudyGoal(_studyGoal);
     print('Saving study goal: $_studyGoal Mins');
     final user = ref.read(userProvider.notifier);
-
     if (_studyGoal > 0) {
       user.updateDailyGoal(_studyGoal);
       user.updateIsPopupCongratsPage(false);
     }
     ref.read(studyGoalProvider.notifier).setStudyGoal(_studyGoal);
-
-    // user.getSavedLearningTime(DateTime.now());
-
-    // int dailyGoalInSeconds = user.getUserDailyGoalInSeconds();
-    // int goal = (dailyGoalInSeconds / 60).toInt();
-    // int totalDays = user.getUserTotalLearningDays();
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => CongratulationPage(
-    //       message: 'Awesome!',
-    //       totalDays: totalDays,
-    //       dailyGloal: goal,
-    //     ),
-    //   ),
-    // );
+    // Show success dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20.0)),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 30),
+              SizedBox(width: 10),
+              Text('Success', style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Text(
+              'You have successfully set your goal to  $_studyGoal Mins. Great job on taking this important step!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => LearningGoalPage(),
+                  ),
+                ); // Navigate to learning goal page
+              },
+              child: Text('OK', style: TextStyle(fontSize: 18)),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Color.fromARGB(255, 175, 145, 230),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
