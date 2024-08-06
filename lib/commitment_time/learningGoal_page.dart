@@ -92,8 +92,9 @@ class _LearningGoalPageState extends ConsumerState<LearningGoalPage> {
     }
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: customAppBar(context: context, title: 'Learning Goal'),
-      body: Center(
+      body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
