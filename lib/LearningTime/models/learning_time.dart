@@ -7,6 +7,7 @@ class LearningTime {
   // 3:quiz
   // 4:categories
   // 5: saved phrases
+  // 6: Practice
   final int model;
 
   LearningTime({
