@@ -17,9 +17,24 @@ class StoriesPage extends StatefulWidget {
 }
 
 class _StoriesPageState extends State<StoriesPage> {
+  late UserProvider userRepo;
+  late DateTime start;
+  int totalSeconds = 0;
+  int dailyGoalInSeconds = 0;
+  bool isPopupCongratsPage = false;
+
   @override
   void initState() {
+    start = DateTime.now();
+    userRepo = new UserProvider();
+    _fetchLearningTimeData();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    saveLearningTime();
+    super.dispose();
   }
 
   Future<List<Map<String, String>>> fetchStories() async {
@@ -36,6 +51,36 @@ class _StoriesPageState extends State<StoriesPage> {
       ),
     );
     return storiesData;
+  }
+
+  void saveLearningTime() async {
+    LearningTime time =
+        new LearningTime(startTime: start, endTime: DateTime.now(), model: 2);
+
+    await userRepo.saveLearningTime(time);
+  }
+
+  Future<void> _fetchLearningTimeData() async {
+    await userRepo.getSavedLearningTime(DateTime.now());
+    totalSeconds = userRepo.getUserTodayLearningTime();
+    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+    isPopupCongratsPage = userRepo.getUserIsPopUpCongratsPage();
+    if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
+      userRepo.updateIsPopupCongratsPage(true);
+      int dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+      int goal = (dailyGoalInSeconds / 60).toInt();
+      int totalDays = userRepo.getUserTotalLearningDays();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CongratulationPage(
+            message: 'Awesome!',
+            totalDays: totalDays,
+            dailyGloal: goal,
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -110,11 +155,6 @@ class _StoryAudioPlayerState extends State<StoryAudioPlayer> {
   bool isPlaying = false;
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
-  late UserProvider userRepo;
-  late DateTime start;
-  int totalSeconds = 0;
-  int dailyGoalInSeconds = 0;
-  bool isPopupCongratsPage = false;
 
   String formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
@@ -130,9 +170,6 @@ class _StoryAudioPlayerState extends State<StoryAudioPlayer> {
 
   @override
   void initState() {
-    start = DateTime.now();
-    userRepo = new UserProvider();
-    _fetchLearningTimeData();
     super.initState();
     setAudio();
 
@@ -155,41 +192,10 @@ class _StoryAudioPlayerState extends State<StoryAudioPlayer> {
     });
   }
 
-  Future<void> _fetchLearningTimeData() async {
-    await userRepo.getSavedLearningTime(DateTime.now());
-    totalSeconds = userRepo.getUserTodayLearningTime();
-    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
-    isPopupCongratsPage = userRepo.getUserIsPopUpCongratsPage();
-    if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
-      userRepo.updateIsPopupCongratsPage(true);
-      int dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
-      int goal = (dailyGoalInSeconds / 60).toInt();
-      int totalDays = userRepo.getUserTotalLearningDays();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CongratulationPage(
-            message: 'Awesome!',
-            totalDays: totalDays,
-            dailyGloal: goal,
-          ),
-        ),
-      );
-    }
-  }
-
   @override
   void dispose() {
-    saveLearningTime();
     audioPlayer.dispose();
     super.dispose();
-  }
-
-  void saveLearningTime() async {
-    LearningTime time =
-        new LearningTime(startTime: start, endTime: DateTime.now(), model: 2);
-
-    await userRepo.saveLearningTime(time);
   }
 
   @override
