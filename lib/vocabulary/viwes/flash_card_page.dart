@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:developer' as logger;
 import 'package:audioplayers/audioplayers.dart';
@@ -48,10 +49,11 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
   late ConfettiController _controllerCenter;
   late UserProvider userRepo;
   late DateTime start;
-  int totalSeconds = 0;
+  int totalSeconds = 1;
   int dailyGoalInSeconds = 0;
   bool isPopupCongratsPage = false;
-
+  int totalDays = 1;
+  int goal = 30;
   @override
   void initState() {
     start = DateTime.now();
@@ -77,6 +79,13 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
     lottieController =
         AnimationController(vsync: this, duration: const Duration(seconds: 2));
     _fetchLearningTimeData();
+
+    totalSeconds = userRepo.getUserTodayLearningTime();
+    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+    isPopupCongratsPage = userRepo.getUserIsPopUpCongratsPage();
+    int timeRemain = dailyGoalInSeconds - totalSeconds;
+    Duration d = new Duration(seconds: timeRemain > 0 ? timeRemain : 1);
+    Timer(d, handleTimeout);
     super.initState();
   }
 
@@ -88,25 +97,12 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
     super.dispose();
   }
 
-  void saveLearningTime() async {
-    LearningTime time =
-        new LearningTime(startTime: start, endTime: DateTime.now(), model: 1);
-
-    await userRepo.saveLearningTime(time);
-  }
-
-  Future<void> _fetchLearningTimeData() async {
-    await userRepo.getSavedLearningTime(DateTime.now());
-    totalSeconds = userRepo.getUserTodayLearningTime();
-    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
-    isPopupCongratsPage = userRepo.getUserIsPopUpCongratsPage();
-    if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
+  void handleTimeout() {
+    if (!isPopupCongratsPage) {
       userRepo.updateIsPopupCongratsPage(true);
+      goal = (dailyGoalInSeconds / 60).toInt();
 
-      int dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
-      int goal = (dailyGoalInSeconds / 60).toInt();
-
-      int totalDays = userRepo.getUserTotalLearningDays();
+      totalDays = userRepo.getUserTotalLearningDays();
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -118,6 +114,17 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
         ),
       );
     }
+  }
+
+  void saveLearningTime() async {
+    LearningTime time =
+        new LearningTime(startTime: start, endTime: DateTime.now(), model: 1);
+
+    await userRepo.saveLearningTime(time);
+  }
+
+  Future<void> _fetchLearningTimeData() async {
+    await userRepo.getSavedLearningTime(DateTime.now());
   }
 
   // setNewBadge(String category){
