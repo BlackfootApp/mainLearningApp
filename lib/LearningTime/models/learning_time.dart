@@ -2,12 +2,13 @@ class LearningTime {
   final DateTime startTime;
   final DateTime endTime;
   // Learning time model:
-  // 1: vocabulary
+  // 1: flash card
   // 2: stories
-  // 3:quiz
-  // 4:categories
+  // 3: quiz
+  // 4: categories
   // 5: saved phrases
   // 6: Practice
+  // 7: saved words
   final int model;
 
   LearningTime({
