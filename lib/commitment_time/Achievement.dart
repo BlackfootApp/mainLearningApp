@@ -97,13 +97,15 @@ class CongratulationPage extends StatelessWidget {
                 ),
               ],
             ),
-          )
-          // Positioned.fill(
-          //   child: Lottie.asset(
-          //     'assets/confetti.json', // Replace with actual file path
-          //     fit: BoxFit.cover,
-          //   ),
-          //),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Lottie.asset(
+                'assets/confetti.json', // Replace with actual file path
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
         ],
       ),
     );
