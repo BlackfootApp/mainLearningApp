@@ -49,7 +49,7 @@ class CongratulationPage extends StatelessWidget {
                       ).createShader(Rect.fromLTWH(0.0, 0.0, 400.0, 70.0)),
                   ),
                   textAlign: TextAlign.center,
-                  totalRepeatCount: 100, // 无限循环的近似值
+                  totalRepeatCount: 100,
                 ),
                 SizedBox(height: 30),
                 Text(
