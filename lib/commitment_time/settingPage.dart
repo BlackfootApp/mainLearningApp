@@ -163,7 +163,7 @@ class _SettingPageState extends ConsumerState<SettingPage> {
     final user = ref.read(userProvider.notifier);
     if (_studyGoal > 0) {
       user.updateDailyGoal(_studyGoal);
-      user.updateIsPopupCongratsPage(false);
+      user.updateLastPopupTime(DateTime(1000));
     }
     ref.read(studyGoalProvider.notifier).setStudyGoal(_studyGoal);
     // Show success dialog

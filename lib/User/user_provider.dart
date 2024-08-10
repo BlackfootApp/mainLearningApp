@@ -779,6 +779,29 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> updateLastPopupTime(DateTime dtTime) async {
+    try {
+      // Access Firestore collection 'users'
+      String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: currentUserEmail)
+              .get();
+
+      querySnapshot.docs.forEach((doc) {
+        String uid = doc.data()['uid'];
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .update({'LastPopupTime': dtTime});
+      });
+    } catch (error) {
+      print("Error fetching data: $error");
+      rethrow;
+    }
+  }
+
   Future<void> incrementHeart(String uid) async {
     DocumentSnapshot documentSnapshot =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
@@ -929,6 +952,7 @@ class UserProvider extends ChangeNotifier {
     double result = 0;
     String uid = '';
     int dailyGobal = 0;
+    DateTime LastPopupTime = new DateTime(1000);
     bool isPopupCongratsPage = false;
     int totalSeconds = 0;
     try {
@@ -943,7 +967,9 @@ class UserProvider extends ChangeNotifier {
       querySnapshot.docs.forEach((doc) {
         List<dynamic> savedLearningTime = doc.data()['savedLearningTime'];
         dailyGobal = doc.data()['dailyGoal'] ?? 0;
-        isPopupCongratsPage = doc.data()['isPopupCongratsPage'] ?? false;
+        LastPopupTime = doc.data()['LastPopupTime'] == null
+            ? new DateTime(1000)
+            : doc.data()['LastPopupTime'].toDate();
         uid = doc.data()['uid'];
 
         savedLearningTime.forEach((phraseData) {
@@ -960,6 +986,12 @@ class UserProvider extends ChangeNotifier {
           savedLearningHisotry.add(phrase);
         });
       });
+
+      if (LastPopupTime.year == dt.year &&
+          LastPopupTime.month == dt.month &&
+          LastPopupTime.day == dt.day) {
+        isPopupCongratsPage = true;
+      }
 
       _userLearningProgress = SavedLearningData(
           uid: uid,

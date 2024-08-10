@@ -99,7 +99,7 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
 
   void handleTimeout() {
     if (!isPopupCongratsPage) {
-      userRepo.updateIsPopupCongratsPage(true);
+      userRepo.updateLastPopupTime(DateTime.now());
       goal = (dailyGoalInSeconds / 60).toInt();
 
       totalDays = userRepo.getUserTotalLearningDays();
