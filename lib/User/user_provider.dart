@@ -5,10 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import "package:collection/collection.dart";
 import '../LearningTime/models/learning_time.dart';
 import '../LearningTime/models/saved_LearningData.dart';
+import '../commitment_time/Achievement.dart';
 
 class UserProvider extends ChangeNotifier {
   String _name = '';
@@ -939,11 +941,45 @@ class UserProvider extends ChangeNotifier {
         });
       });
     } catch (error) {
-      print("Error fetching data: $error");
+      print("Error saving user learning time data: $error");
       rethrow;
     }
 
     notifyListeners();
+  }
+
+  Future<void> saveUserLearningTime(DateTime start, int model) async {
+    try {
+      LearningTime time = new LearningTime(
+          startTime: start, endTime: DateTime.now(), model: model);
+      await saveLearningTime(time);
+    } catch (error) {
+      print("Error saving user learning time data: $error");
+      rethrow;
+    }
+
+    //notifyListeners();
+  }
+
+  void popupArchivementPage(BuildContext context) {
+    bool isPopupCongratsPage = getUserIsPopUpCongratsPage();
+    if (!isPopupCongratsPage) {
+      updateLastPopupTime(DateTime.now());
+      int dailyGoalInSeconds = getUserDailyGoalInSeconds();
+      int goal = (dailyGoalInSeconds / 60).toInt();
+
+      int totalDays = getUserTotalLearningDays();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CongratulationPage(
+            message: 'Awesome!',
+            totalDays: totalDays,
+            dailyGloal: goal,
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> getSavedLearningTime(DateTime dt) async {

@@ -51,9 +51,7 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
   late DateTime start;
   int totalSeconds = 1;
   int dailyGoalInSeconds = 0;
-  bool isPopupCongratsPage = false;
-  int totalDays = 1;
-  int goal = 30;
+
   @override
   void initState() {
     start = DateTime.now();
@@ -82,7 +80,6 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
 
     totalSeconds = userRepo.getUserTodayLearningTime();
     dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
-    isPopupCongratsPage = userRepo.getUserIsPopUpCongratsPage();
     int timeRemain = dailyGoalInSeconds - totalSeconds;
     Duration d = new Duration(seconds: timeRemain > 0 ? timeRemain : 1);
     Timer(d, handleTimeout);
@@ -91,36 +88,14 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
 
   @override
   dispose() {
-    saveLearningTime();
+    userRepo.saveUserLearningTime(start, 1);
     _controllerCenter.dispose();
     lottieController.dispose();
     super.dispose();
   }
 
   void handleTimeout() {
-    if (!isPopupCongratsPage) {
-      userRepo.updateLastPopupTime(DateTime.now());
-      goal = (dailyGoalInSeconds / 60).toInt();
-
-      totalDays = userRepo.getUserTotalLearningDays();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CongratulationPage(
-            message: 'Awesome!',
-            totalDays: totalDays,
-            dailyGloal: goal,
-          ),
-        ),
-      );
-    }
-  }
-
-  void saveLearningTime() async {
-    LearningTime time =
-        new LearningTime(startTime: start, endTime: DateTime.now(), model: 1);
-
-    await userRepo.saveLearningTime(time);
+    userRepo.popupArchivementPage(context);
   }
 
   Future<void> _fetchLearningTimeData() async {

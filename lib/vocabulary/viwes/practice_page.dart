@@ -53,9 +53,8 @@ class PracticePageState extends ConsumerState<PracticePage> {
   bool _isAnswered = false;
   String _selectedAnswer = '';
   late DateTime start;
-  int totalSeconds = 0;
+  int totalSeconds = 1;
   int dailyGoalInSeconds = 0;
-  bool isPopupCongratsPage = false;
 
   @override
   void initState() {
@@ -63,6 +62,12 @@ class PracticePageState extends ConsumerState<PracticePage> {
     leaderBoardRepo = ref.read(leaderboardProvider);
     userRepo = ref.read(userProvider);
     _fetchLearningTimeData();
+
+    totalSeconds = userRepo.getUserTodayLearningTime();
+    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+    int timeRemain = dailyGoalInSeconds - totalSeconds;
+    Duration d = new Duration(seconds: timeRemain > 0 ? timeRemain : 1);
+    Timer(d, handleTimeout);
     super.initState();
     fetchQuestions();
     print("initState");
@@ -86,40 +91,16 @@ class PracticePageState extends ConsumerState<PracticePage> {
 
   @override
   dispose() {
-    saveLearningTime();
+    userRepo.saveUserLearningTime(start, 6);
     super.dispose();
   }
 
-  void saveLearningTime() async {
-    LearningTime time =
-        new LearningTime(startTime: start, endTime: DateTime.now(), model: 6);
-
-    await userRepo.saveLearningTime(time);
+  void handleTimeout() {
+    userRepo.popupArchivementPage(context);
   }
 
   Future<void> _fetchLearningTimeData() async {
     await userRepo.getSavedLearningTime(DateTime.now());
-    totalSeconds = userRepo.getUserTodayLearningTime();
-    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
-    isPopupCongratsPage = userRepo.getUserIsPopUpCongratsPage();
-    if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
-      userRepo.updateIsPopupCongratsPage(true);
-
-      int dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
-      int goal = (dailyGoalInSeconds / 60).toInt();
-
-      int totalDays = userRepo.getUserTotalLearningDays();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CongratulationPage(
-            message: 'Awesome!',
-            totalDays: totalDays,
-            dailyGloal: goal,
-          ),
-        ),
-      );
-    }
   }
 
   void _nextQuestion() {
