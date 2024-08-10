@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:bfootlearn/Phrases/provider/mediaProvider.dart';
 import 'package:bfootlearn/components/color_file.dart';
@@ -19,21 +21,25 @@ class StoriesPage extends StatefulWidget {
 class _StoriesPageState extends State<StoriesPage> {
   late UserProvider userRepo;
   late DateTime start;
-  int totalSeconds = 0;
+  int totalSeconds = 1;
   int dailyGoalInSeconds = 0;
-  bool isPopupCongratsPage = false;
 
   @override
   void initState() {
     start = DateTime.now();
     userRepo = new UserProvider();
     _fetchLearningTimeData();
+    totalSeconds = userRepo.getUserTodayLearningTime();
+    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+    int timeRemain = dailyGoalInSeconds - totalSeconds;
+    Duration d = new Duration(seconds: timeRemain > 0 ? timeRemain : 1);
+    Timer(d, handleTimeout);
     super.initState();
   }
 
   @override
   void dispose() {
-    saveLearningTime();
+    userRepo.saveUserLearningTime(start, 2);
     super.dispose();
   }
 
@@ -53,34 +59,12 @@ class _StoriesPageState extends State<StoriesPage> {
     return storiesData;
   }
 
-  void saveLearningTime() async {
-    LearningTime time =
-        new LearningTime(startTime: start, endTime: DateTime.now(), model: 2);
-
-    await userRepo.saveLearningTime(time);
+  void handleTimeout() {
+    userRepo.popupArchivementPage(context);
   }
 
   Future<void> _fetchLearningTimeData() async {
     await userRepo.getSavedLearningTime(DateTime.now());
-    totalSeconds = userRepo.getUserTodayLearningTime();
-    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
-    isPopupCongratsPage = userRepo.getUserIsPopUpCongratsPage();
-    if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
-      userRepo.updateIsPopupCongratsPage(true);
-      int dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
-      int goal = (dailyGoalInSeconds / 60).toInt();
-      int totalDays = userRepo.getUserTotalLearningDays();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CongratulationPage(
-            message: 'Awesome!',
-            totalDays: totalDays,
-            dailyGloal: goal,
-          ),
-        ),
-      );
-    }
   }
 
   @override

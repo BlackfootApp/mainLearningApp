@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bfootlearn/Phrases/widgets/card_slider.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/riverpod/river_pod.dart';
@@ -16,54 +18,36 @@ class SavedPage extends ConsumerStatefulWidget {
 
 class _SavedPageState extends ConsumerState<SavedPage> {
   int? currentPlayingIndex;
-  final DateTime start = DateTime.now();
-  int totalSeconds = 0;
+  late DateTime start;
+  int totalSeconds = 1;
   int dailyGoalInSeconds = 0;
-  bool isPopupCongratsPage = false;
 
   late UserProvider userProvide;
 
   @override
   void initState() {
+    start = DateTime.now();
     userProvide = ref.read(userProvider);
     _fetchLearningTimeData();
+    totalSeconds = userProvide.getUserTodayLearningTime();
+    dailyGoalInSeconds = userProvide.getUserDailyGoalInSeconds();
+    int timeRemain = dailyGoalInSeconds - totalSeconds;
+    Duration d = new Duration(seconds: timeRemain > 0 ? timeRemain : 1);
+    Timer(d, handleTimeout);
     super.initState();
   }
 
-  void saveLearningTime() async {
-    LearningTime time =
-        new LearningTime(startTime: start, endTime: DateTime.now(), model: 5);
-
-    await userProvide.saveLearningTime(time);
+  void handleTimeout() {
+    userProvide.popupArchivementPage(context);
   }
 
   Future<void> _fetchLearningTimeData() async {
     await userProvide.getSavedLearningTime(DateTime.now());
-    totalSeconds = userProvide.getUserTodayLearningTime();
-    dailyGoalInSeconds = userProvide.getUserDailyGoalInSeconds();
-    isPopupCongratsPage = userProvide.getUserIsPopUpCongratsPage();
-    if (totalSeconds >= dailyGoalInSeconds && !isPopupCongratsPage) {
-      userProvide.updateIsPopupCongratsPage(true);
-
-      int dailyGoalInSeconds = userProvide.getUserDailyGoalInSeconds();
-      int goal = (dailyGoalInSeconds / 60).toInt();
-      int totalDays = userProvide.getUserTotalLearningDays();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CongratulationPage(
-            message: 'Awesome!',
-            totalDays: totalDays,
-            dailyGloal: goal,
-          ),
-        ),
-      );
-    }
   }
 
   @override
   dispose() {
-    saveLearningTime();
+    userProvide.saveUserLearningTime(start, 5);
     super.dispose();
   }
 
