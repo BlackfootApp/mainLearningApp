@@ -5,6 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import "package:collection/collection.dart";
+import '../LearningTime/models/learning_time.dart';
+import '../LearningTime/models/saved_LearningData.dart';
+import '../commitment_time/Achievement.dart';
 
 class UserProvider extends ChangeNotifier {
   String _name = '';
@@ -17,11 +23,23 @@ class UserProvider extends ChangeNotifier {
   String _expiresIn = '';
   int _score = 0;
   int _rank = 0;
+  int _dailyGoal = 0;
   UserModel _user;
   int _heart = 0;
 
   String _username = "";
   String _joinDate = "";
+  SavedLearningData _userLearningProgress = SavedLearningData(
+      uid: '',
+      savedLearningTime: [],
+      dailyGoal: 30,
+      isPopupCongratsPage: false);
+
+  SavedLearningData _userLearningHistory = SavedLearningData(
+      uid: '',
+      savedLearningTime: [],
+      dailyGoal: 30,
+      isPopupCongratsPage: false);
 
   UserProvider()
       : _badge = CardBadge(
@@ -43,10 +61,12 @@ class UserProvider extends ChangeNotifier {
           imageUrl: '',
           score: 0,
           rank: 0,
+          dailyGoal: 0,
           heart: 0,
-          joinedDate: '',
+          joinedDate: DateTime.now().toString(),
           savedWords: [],
           savedPhrases: [],
+          savedLearningTime: [],
           userName: '',
           email: '',
         ); // Initialize _user in the constructor
@@ -57,10 +77,51 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  CardBadge _badge;
+  SavedLearningData getUserSavedLearningData() {
+    return _userLearningProgress;
+  }
 
+  int getUserDailyGoalInSeconds() {
+    return _userLearningProgress.dailyGoal * 60;
+  }
+
+  bool getUserIsPopUpCongratsPage() {
+    return _userLearningProgress.isPopupCongratsPage;
+  }
+
+  int getUserTodayLearningTime() {
+    int totalSeconds = 0;
+
+    _userLearningProgress.savedLearningTime.forEach((data) {
+      DateTime start = data.startTime;
+      DateTime end = data.endTime;
+      int duration = 0;
+
+      duration = end.difference(start).inSeconds;
+      if (duration > 0) {
+        totalSeconds += duration;
+      }
+    });
+
+    return totalSeconds;
+  }
+
+  SavedLearningData getUserSavedLearningHistory() {
+    return _userLearningHistory;
+  }
+
+  int getUserTotalLearningDays() {
+    var hisotryData = groupBy(_userLearningHistory.savedLearningTime,
+        (LearningTime obj) => DateFormat('yyyy-MM-dd').format(obj.startTime));
+    return hisotryData.length;
+  }
+
+  CardBadge _badge;
+  bool isMeetDailyGobal = false;
   List<SavedWords> _savedWords = [];
   List<CardData> _savedPhrases = [];
+  List<LearningTime> _savedLearningTime = [];
+
   String get name => _name;
 
   String get email => _email;
@@ -83,12 +144,16 @@ class UserProvider extends ChangeNotifier {
 
   int get heart => _heart;
 
+  int get dailyGoal => _dailyGoal;
+
   String get username => _username;
 
   String get joinDate => _joinDate;
   List<SavedWords> get savedWords => _savedWords;
 
   List<CardData> get savedPhrases => _savedPhrases;
+
+  List<LearningTime> get savedLearningTime => _savedLearningTime;
 
   CardBadge get badge => _badge;
 
@@ -147,6 +212,11 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setDailyGoal(int dailyGoal) {
+    _dailyGoal = dailyGoal;
+    notifyListeners();
+  }
+
   void setHeart(int heart) {
     _heart = heart;
     notifyListeners();
@@ -193,6 +263,7 @@ class UserProvider extends ChangeNotifier {
       'imageUrl': user.imageUrl,
       'score': user.score,
       'rank': user.rank,
+      'dailyGoal': user.dailyGoal,
       'badge': user.badge.toJson(),
       'joinedDate': user.joinedDate,
       'heart': user.heart,
@@ -201,6 +272,8 @@ class UserProvider extends ChangeNotifier {
       'savedWords': user.savedWords?.map((word) => word.toJson()).toList(),
       'savedPhrases':
           user.savedPhrases?.map((phrase) => phrase.toJson()).toList(),
+      'savedLearningTime':
+          user.savedLearningTime?.map((time) => time.toJson()).toList(),
     });
   }
 
@@ -217,6 +290,7 @@ class UserProvider extends ChangeNotifier {
       setPhotoUrl(user.imageUrl);
       setScore(user.score);
       setRank(user.rank);
+      setDailyGoal(user.dailyGoal);
       setHeart(user.heart);
       setUsername(user.userName);
       print("badge is ${user.badge} and of type ${user.badge.runtimeType}");
@@ -245,6 +319,7 @@ class UserProvider extends ChangeNotifier {
       setPhotoUrl(user.imageUrl);
       setScore(user.score);
       setRank(user.rank);
+      setDailyGoal(user.dailyGoal);
       setHeart(user.heart);
       setUsername(user.userName);
       setJoinedDate(user.joinedDate);
@@ -258,14 +333,14 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<UserModel> getUserProfile(String uid) async {
-    DocumentSnapshot documentSnapshot =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    if (documentSnapshot.exists) {
-      final user =
-          UserModel.fromJson(documentSnapshot.data() as Map<String, dynamic>);
-      return user;
-    }
-    return UserModel(
+    String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+    QuerySnapshot<Map<String, dynamic>> querySnapshot = await FirebaseFirestore
+        .instance
+        .collection('users')
+        .where('email', isEqualTo: currentUserEmail)
+        .get();
+
+    UserModel user = new UserModel(
       badge: CardBadge(
           kinship: false,
           direction: false,
@@ -278,13 +353,25 @@ class UserProvider extends ChangeNotifier {
       imageUrl: '',
       score: 0,
       rank: 0,
+      dailyGoal: 0,
       heart: 0,
-      joinedDate: '',
+      joinedDate: DateTime.now().toString(),
       savedWords: [],
       savedPhrases: [],
+      savedLearningTime: [],
       userName: '',
       email: '',
-    ); // Return a default UserModel when the document doesn't exist
+    ); // Return a default UserModel when the document doesn't exist;
+    querySnapshot.docs.forEach((doc) async {
+      String uid = doc.data()['uid'];
+      DocumentSnapshot documentSnapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (documentSnapshot.exists) {
+        user =
+            UserModel.fromJson(documentSnapshot.data() as Map<String, dynamic>);
+      }
+    });
+    return user;
   }
 
   Future<void> updateBadge(String uid, CardBadge badge) async {
@@ -339,12 +426,15 @@ class UserProvider extends ChangeNotifier {
       'email': user.email,
       'uid': user.uid,
       'role': user.role.isEmpty ? "user" : user.role,
+      'dailyGoal': user.dailyGoal,
       'imageUrl': user.imageUrl,
       'score': user.score,
       'rank': user.rank,
       'savedWords': user.savedWords?.map((word) => word.toJson()).toList(),
       'savedPhrases':
           user.savedPhrases?.map((phrase) => phrase.toJson()).toList(),
+      'savedLearningTime':
+          user.savedLearningTime?.map((time) => time.toJson()).toList(),
     });
   }
 
@@ -459,7 +549,8 @@ class UserProvider extends ChangeNotifier {
 
   sortAndUpdateRank() async {
     // Fetch all users
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('users').get();
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection('users').get();
 
     // Sort the users based on score
     List<QueryDocumentSnapshot> users = querySnapshot.docs;
@@ -617,6 +708,102 @@ class UserProvider extends ChangeNotifier {
         .then((value) => value.data()!['joindate']);
   }
 
+  Future<String> getDailyGoal(String uid) async {
+    String result = '';
+    try {
+      // Access Firestore collection 'users'
+      String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: currentUserEmail)
+              .get();
+
+      querySnapshot.docs.forEach((doc) async {
+        String uid = doc.data()['uid'];
+
+        result = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get()
+            .then((value) => value.data()!['dailyGoal']);
+      });
+    } catch (error) {
+      print("Error fetching data: $error");
+      rethrow;
+    }
+    return result;
+  }
+
+  Future<void> updateDailyGoal(int dailyGoal) async {
+    try {
+      // Access Firestore collection 'users'
+      String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: currentUserEmail)
+              .get();
+
+      querySnapshot.docs.forEach((doc) {
+        String uid = doc.data()['uid'];
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .update({'dailyGoal': dailyGoal});
+      });
+    } catch (error) {
+      print("Error fetching data: $error");
+      rethrow;
+    }
+  }
+
+  Future<void> updateIsPopupCongratsPage(bool isPopupCongratsPage) async {
+    try {
+      // Access Firestore collection 'users'
+      String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: currentUserEmail)
+              .get();
+
+      querySnapshot.docs.forEach((doc) {
+        String uid = doc.data()['uid'];
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .update({'isPopupCongratsPage': isPopupCongratsPage});
+      });
+    } catch (error) {
+      print("Error fetching data: $error");
+      rethrow;
+    }
+  }
+
+  Future<void> updateLastPopupTime(DateTime dtTime) async {
+    try {
+      // Access Firestore collection 'users'
+      String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: currentUserEmail)
+              .get();
+
+      querySnapshot.docs.forEach((doc) {
+        String uid = doc.data()['uid'];
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .update({'LastPopupTime': dtTime});
+      });
+    } catch (error) {
+      print("Error fetching data: $error");
+      rethrow;
+    }
+  }
+
   Future<void> incrementHeart(String uid) async {
     DocumentSnapshot documentSnapshot =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
@@ -641,14 +828,25 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<void> getBadge(String uid) async {
-    //_badge = await FirebaseFirestore.instance.collection('users').doc(uid).get().then((value) => value.data()!['badge']);
-    await FirebaseFirestore.instance
+    String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+    QuerySnapshot<Map<String, dynamic>> querySnapshot = await FirebaseFirestore
+        .instance
         .collection('users')
-        .doc(uid)
-        .get()
-        .then((value) {
-      _badge = CardBadge.fromJson(value.data()!['badge']);
+        .where('email', isEqualTo: currentUserEmail)
+        .get();
+
+    querySnapshot.docs.forEach((doc) {
+      String uid = doc.data()['uid'];
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get()
+          .then((value) {
+        _badge = CardBadge.fromJson(value.data()!['badge']);
+      });
     });
+
+    //_badge = await FirebaseFirestore.instance.collection('users').doc(uid).get().then((value) => value.data()!['badge']);
   }
 
   // Future<void> changePhotoUrl(String uid, String photoUrl) async {
@@ -718,5 +916,134 @@ class UserProvider extends ChangeNotifier {
   void setPhrases(List<CardData> savedPhrases) {
     _savedPhrases = savedPhrases;
     notifyListeners();
+  }
+
+  void setLearningTime(List<LearningTime> savedLearningTime) async {
+    _savedLearningTime = savedLearningTime;
+
+    notifyListeners();
+  }
+
+  Future<void> saveLearningTime(LearningTime learningTime) async {
+    try {
+      // Access Firestore collection 'users'
+      String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: currentUserEmail)
+              .get();
+
+      querySnapshot.docs.forEach((doc) {
+        String uid = doc.data()['uid'];
+        FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'savedLearningTime': FieldValue.arrayUnion([learningTime.toJson()])
+        });
+      });
+    } catch (error) {
+      print("Error saving user learning time data: $error");
+      rethrow;
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> saveUserLearningTime(DateTime start, int model) async {
+    try {
+      LearningTime time = new LearningTime(
+          startTime: start, endTime: DateTime.now(), model: model);
+      await saveLearningTime(time);
+    } catch (error) {
+      print("Error saving user learning time data: $error");
+      rethrow;
+    }
+
+    //notifyListeners();
+  }
+
+  void popupArchivementPage(BuildContext context) {
+    bool isPopupCongratsPage = getUserIsPopUpCongratsPage();
+    if (!isPopupCongratsPage) {
+      updateLastPopupTime(DateTime.now());
+      int dailyGoalInSeconds = getUserDailyGoalInSeconds();
+      int goal = (dailyGoalInSeconds / 60).toInt();
+
+      int totalDays = getUserTotalLearningDays();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CongratulationPage(
+            message: 'Awesome!',
+            totalDays: totalDays,
+            dailyGloal: goal,
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> getSavedLearningTime(DateTime dt) async {
+    List<LearningTime> savedLearning = [];
+    List<LearningTime> savedLearningHisotry = [];
+    double result = 0;
+    String uid = '';
+    int dailyGobal = 0;
+    DateTime LastPopupTime = new DateTime(1000);
+    bool isPopupCongratsPage = false;
+    int totalSeconds = 0;
+    try {
+      // Access Firestore collection 'users'
+      String? currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: currentUserEmail)
+              .get();
+
+      querySnapshot.docs.forEach((doc) {
+        List<dynamic> savedLearningTime = doc.data()['savedLearningTime'];
+        dailyGobal = doc.data()['dailyGoal'] ?? 0;
+        LastPopupTime = doc.data()['LastPopupTime'] == null
+            ? new DateTime(1000)
+            : doc.data()['LastPopupTime'].toDate();
+        uid = doc.data()['uid'];
+
+        savedLearningTime.forEach((phraseData) {
+          DateTime start = phraseData['startTime'].toDate();
+          DateTime end = phraseData['endTime'].toDate();
+          LearningTime phrase = LearningTime(
+              startTime: start, endTime: end, model: phraseData['model']);
+          if (start.year == dt.year &&
+              start.month == dt.month &&
+              start.day == dt.day) {
+            savedLearning.add(phrase);
+          }
+
+          savedLearningHisotry.add(phrase);
+        });
+      });
+
+      if (LastPopupTime.year == dt.year &&
+          LastPopupTime.month == dt.month &&
+          LastPopupTime.day == dt.day) {
+        isPopupCongratsPage = true;
+      }
+
+      _userLearningProgress = SavedLearningData(
+          uid: uid,
+          savedLearningTime: savedLearning,
+          dailyGoal: dailyGobal,
+          isPopupCongratsPage: isPopupCongratsPage);
+
+      _userLearningHistory = SavedLearningData(
+          uid: uid,
+          savedLearningTime: savedLearningHisotry,
+          dailyGoal: dailyGobal,
+          isPopupCongratsPage: isPopupCongratsPage);
+      ;
+    } catch (error) {
+      print("Error fetching data: $error");
+      rethrow;
+    }
   }
 }

@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 
+import '../../LearningTime/models/learning_time.dart';
+import '../../commitment_time/Achievement.dart';
 import '../../riverpod/river_pod.dart';
 
 class PracticePage extends ConsumerStatefulWidget {
@@ -26,7 +28,8 @@ class PracticePage extends ConsumerStatefulWidget {
   PracticePageState createState() => PracticePageState();
 }
 
-final GlobalKey<PracticePageState> practicePageKey = GlobalKey<PracticePageState>();
+final GlobalKey<PracticePageState> practicePageKey =
+    GlobalKey<PracticePageState>();
 
 void someFunction(BuildContext context) {
   if (practicePageKey.currentState != null) {
@@ -49,11 +52,22 @@ class PracticePageState extends ConsumerState<PracticePage> {
   int _secondsRemaining = 10;
   bool _isAnswered = false;
   String _selectedAnswer = '';
+  late DateTime start;
+  int totalSeconds = 1;
+  int dailyGoalInSeconds = 0;
+
   @override
   void initState() {
+    start = DateTime.now();
     leaderBoardRepo = ref.read(leaderboardProvider);
     userRepo = ref.read(userProvider);
+    _fetchLearningTimeData();
 
+    totalSeconds = userRepo.getUserTodayLearningTime();
+    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+    int timeRemain = dailyGoalInSeconds - totalSeconds;
+    Duration d = new Duration(seconds: timeRemain > 0 ? timeRemain : 1);
+    Timer(d, handleTimeout);
     super.initState();
     fetchQuestions();
     print("initState");
@@ -69,21 +83,32 @@ class PracticePageState extends ConsumerState<PracticePage> {
   void didChangeDependencies() {
     print("didChangeDependencies");
     setState(() {
-      _currentQuestionIndex = ref.watch(currentQuestionIndexProvider.notifier).state;
+      _currentQuestionIndex =
+          ref.watch(currentQuestionIndexProvider.notifier).state;
     });
     super.didChangeDependencies();
   }
 
   @override
   dispose() {
+    userRepo.saveUserLearningTime(start, 6);
     super.dispose();
+  }
+
+  void handleTimeout() {
+    userRepo.popupArchivementPage(context);
+  }
+
+  Future<void> _fetchLearningTimeData() async {
+    await userRepo.getSavedLearningTime(DateTime.now());
   }
 
   void _nextQuestion() {
     setState(() {
       if (_currentQuestionIndex < _questions.length - 1) {
         _currentQuestionIndex++;
-        ref.read(currentQuestionIndexProvider.notifier).state = _currentQuestionIndex;
+        ref.read(currentQuestionIndexProvider.notifier).state =
+            _currentQuestionIndex;
         _secondsRemaining = 10;
         _isAnswered = false;
       } else {
@@ -112,7 +137,8 @@ class PracticePageState extends ConsumerState<PracticePage> {
       } else {
         print('Incorrect!');
       }
-      bool isCorrect = selectedAnswer == _questions[_currentQuestionIndex].correctAnswer;
+      bool isCorrect =
+          selectedAnswer == _questions[_currentQuestionIndex].correctAnswer;
       Color backgroundColor = isCorrect ? Colors.green : Colors.red;
       String message = isCorrect ? 'Correct!' : 'Incorrect!';
 
@@ -120,7 +146,10 @@ class PracticePageState extends ConsumerState<PracticePage> {
         SnackBar(
             content: isCorrect
                 ? Text(message)
-                : Text(message + "\nCorrect Answer is ${_questions[_currentQuestionIndex].correctAnswer}", style: const TextStyle(color: Colors.white)),
+                : Text(
+                    message +
+                        "\nCorrect Answer is ${_questions[_currentQuestionIndex].correctAnswer}",
+                    style: const TextStyle(color: Colors.white)),
             backgroundColor: backgroundColor,
             duration: const Duration(seconds: 5),
             action: SnackBarAction(
@@ -142,7 +171,8 @@ class PracticePageState extends ConsumerState<PracticePage> {
 
   @override
   Widget build(BuildContext context) {
-    _currentQuestionIndex = ref.watch(currentQuestionIndexProvider.notifier).state;
+    _currentQuestionIndex =
+        ref.watch(currentQuestionIndexProvider.notifier).state;
     FirebaseStorage storage = FirebaseStorage.instance;
     Widget body;
     if (_questions.isEmpty) {
@@ -168,8 +198,11 @@ class PracticePageState extends ConsumerState<PracticePage> {
                     onTap: () async {
                       AudioPlayer audioPlayer = AudioPlayer();
                       print(_questions[_currentQuestionIndex]);
-                      print("sound to be played ${_questions[_currentQuestionIndex].sound}");
-                      Uri downloadUrl = Uri.parse(await storage.refFromURL(_questions[_currentQuestionIndex].sound).getDownloadURL());
+                      print(
+                          "sound to be played ${_questions[_currentQuestionIndex].sound}");
+                      Uri downloadUrl = Uri.parse(await storage
+                          .refFromURL(_questions[_currentQuestionIndex].sound)
+                          .getDownloadURL());
                       await audioPlayer.play(UrlSource(downloadUrl.toString()));
                     },
                     child: Center(
@@ -198,9 +231,16 @@ class PracticePageState extends ConsumerState<PracticePage> {
                         return ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _isAnswered
-                                ? _questions[_currentQuestionIndex].correctAnswer == _questions[_currentQuestionIndex].options[0].word
+                                ? _questions[_currentQuestionIndex]
+                                            .correctAnswer ==
+                                        _questions[_currentQuestionIndex]
+                                            .options[0]
+                                            .word
                                     ? Colors.green
-                                    : _selectedAnswer == _questions[_currentQuestionIndex].options[0].word
+                                    : _selectedAnswer ==
+                                            _questions[_currentQuestionIndex]
+                                                .options[0]
+                                                .word
                                         ? Colors.red
                                         : null
                                 : null,
@@ -211,12 +251,22 @@ class PracticePageState extends ConsumerState<PracticePage> {
                             minimumSize: const Size(180, 120),
                           ),
                           onPressed: () {
-                            _selectAnswer(_questions[_currentQuestionIndex].options[0].word);
+                            _selectAnswer(_questions[_currentQuestionIndex]
+                                .options[0]
+                                .word);
                           },
                           child: Column(
                             children: [
-                              SizedBox(height: 100, width: 100, child: Lottie.network(_questions[_currentQuestionIndex].options[0].lottie)),
-                              Text(_questions[_currentQuestionIndex].options[0].word),
+                              SizedBox(
+                                  height: 100,
+                                  width: 100,
+                                  child: Lottie.network(
+                                      _questions[_currentQuestionIndex]
+                                          .options[0]
+                                          .lottie)),
+                              Text(_questions[_currentQuestionIndex]
+                                  .options[0]
+                                  .word),
                             ],
                           ),
                         );
@@ -225,9 +275,16 @@ class PracticePageState extends ConsumerState<PracticePage> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _isAnswered
-                              ? _questions[_currentQuestionIndex].correctAnswer == _questions[_currentQuestionIndex].options[1].word
+                              ? _questions[_currentQuestionIndex]
+                                          .correctAnswer ==
+                                      _questions[_currentQuestionIndex]
+                                          .options[1]
+                                          .word
                                   ? Colors.green
-                                  : _selectedAnswer == _questions[_currentQuestionIndex].options[1].word
+                                  : _selectedAnswer ==
+                                          _questions[_currentQuestionIndex]
+                                              .options[1]
+                                              .word
                                       ? Colors.red
                                       : null
                               : null,
@@ -238,12 +295,22 @@ class PracticePageState extends ConsumerState<PracticePage> {
                           minimumSize: const Size(180, 120),
                         ),
                         onPressed: () {
-                          _selectAnswer(_questions[_currentQuestionIndex].options[1].word);
+                          _selectAnswer(_questions[_currentQuestionIndex]
+                              .options[1]
+                              .word);
                         },
                         child: Column(
                           children: [
-                            SizedBox(height: 100, width: 100, child: Lottie.network(_questions[_currentQuestionIndex].options[1].lottie)),
-                            Text(_questions[_currentQuestionIndex].options[1].word),
+                            SizedBox(
+                                height: 100,
+                                width: 100,
+                                child: Lottie.network(
+                                    _questions[_currentQuestionIndex]
+                                        .options[1]
+                                        .lottie)),
+                            Text(_questions[_currentQuestionIndex]
+                                .options[1]
+                                .word),
                           ],
                         ),
                       ),
@@ -256,9 +323,16 @@ class PracticePageState extends ConsumerState<PracticePage> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _isAnswered
-                              ? _questions[_currentQuestionIndex].correctAnswer == _questions[_currentQuestionIndex].options[2].word
+                              ? _questions[_currentQuestionIndex]
+                                          .correctAnswer ==
+                                      _questions[_currentQuestionIndex]
+                                          .options[2]
+                                          .word
                                   ? Colors.green
-                                  : _selectedAnswer == _questions[_currentQuestionIndex].options[2].word
+                                  : _selectedAnswer ==
+                                          _questions[_currentQuestionIndex]
+                                              .options[2]
+                                              .word
                                       ? Colors.red
                                       : null
                               : null,
@@ -269,12 +343,22 @@ class PracticePageState extends ConsumerState<PracticePage> {
                           minimumSize: const Size(180, 120),
                         ),
                         onPressed: () {
-                          _selectAnswer(_questions[_currentQuestionIndex].options[2].word);
+                          _selectAnswer(_questions[_currentQuestionIndex]
+                              .options[2]
+                              .word);
                         },
                         child: Column(
                           children: [
-                            SizedBox(height: 100, width: 100, child: Lottie.network(_questions[_currentQuestionIndex].options[2].lottie)),
-                            Text(_questions[_currentQuestionIndex].options[2].word),
+                            SizedBox(
+                                height: 100,
+                                width: 100,
+                                child: Lottie.network(
+                                    _questions[_currentQuestionIndex]
+                                        .options[2]
+                                        .lottie)),
+                            Text(_questions[_currentQuestionIndex]
+                                .options[2]
+                                .word),
                           ],
                         ),
                       ),
@@ -314,25 +398,31 @@ class PracticePageState extends ConsumerState<PracticePage> {
                     const SizedBox(height: 16.0),
                     StatefulBuilder(builder: (context, StateSetter setState) {
                       return LWidget(
-                        url: _questions[_currentQuestionIndex].options[0].lottie,
+                        url:
+                            _questions[_currentQuestionIndex].options[0].lottie,
                         text: _questions[_currentQuestionIndex].options[0].word,
                         isAnswered: _isAnswered,
                         selectedAnswer: _selectedAnswer,
-                        correctAnswer: _questions[_currentQuestionIndex].correctAnswer,
+                        correctAnswer:
+                            _questions[_currentQuestionIndex].correctAnswer,
                         onTap: _selectAnswer,
-                        soundUrl: _questions[_currentQuestionIndex].options[0].sound,
+                        soundUrl:
+                            _questions[_currentQuestionIndex].options[0].sound,
                       );
                     }),
                     const SizedBox(height: 16.0),
                     StatefulBuilder(builder: (context, StateSetter setState) {
                       return LWidget(
-                        url: _questions[_currentQuestionIndex].options[1].lottie,
+                        url:
+                            _questions[_currentQuestionIndex].options[1].lottie,
                         text: _questions[_currentQuestionIndex].options[1].word,
                         isAnswered: _isAnswered,
                         selectedAnswer: _selectedAnswer,
-                        correctAnswer: _questions[_currentQuestionIndex].correctAnswer,
+                        correctAnswer:
+                            _questions[_currentQuestionIndex].correctAnswer,
                         onTap: _selectAnswer,
-                        soundUrl: _questions[_currentQuestionIndex].options[1].sound,
+                        soundUrl:
+                            _questions[_currentQuestionIndex].options[1].sound,
                       );
                     }),
                     const SizedBox(height: 16.0),
@@ -341,9 +431,11 @@ class PracticePageState extends ConsumerState<PracticePage> {
                       text: _questions[_currentQuestionIndex].options[2].word,
                       isAnswered: _isAnswered,
                       selectedAnswer: _selectedAnswer,
-                      correctAnswer: _questions[_currentQuestionIndex].correctAnswer,
+                      correctAnswer:
+                          _questions[_currentQuestionIndex].correctAnswer,
                       onTap: _selectAnswer,
-                      soundUrl: _questions[_currentQuestionIndex].options[2].sound,
+                      soundUrl:
+                          _questions[_currentQuestionIndex].options[2].sound,
                     ),
                   ],
                 ),
@@ -387,12 +479,16 @@ class PracticePageState extends ConsumerState<PracticePage> {
                         SizedBox(
                           height: 100,
                           width: 180,
-                          child: normalOption(_questions[_currentQuestionIndex].options[0].word, _questions[_currentQuestionIndex].correctAnswer),
+                          child: normalOption(
+                              _questions[_currentQuestionIndex].options[0].word,
+                              _questions[_currentQuestionIndex].correctAnswer),
                         ),
                         SizedBox(
                           height: 100,
                           width: 180,
-                          child: normalOption(_questions[_currentQuestionIndex].options[1].word, _questions[_currentQuestionIndex].correctAnswer),
+                          child: normalOption(
+                              _questions[_currentQuestionIndex].options[1].word,
+                              _questions[_currentQuestionIndex].correctAnswer),
                         ),
                       ],
                     ),
@@ -405,12 +501,16 @@ class PracticePageState extends ConsumerState<PracticePage> {
                         SizedBox(
                           height: 100,
                           width: 180,
-                          child: normalOption(_questions[_currentQuestionIndex].options[2].word, _questions[_currentQuestionIndex].correctAnswer),
+                          child: normalOption(
+                              _questions[_currentQuestionIndex].options[2].word,
+                              _questions[_currentQuestionIndex].correctAnswer),
                         ),
                         SizedBox(
                           height: 100,
                           width: 180,
-                          child: normalOption(_questions[_currentQuestionIndex].options[3].word, _questions[_currentQuestionIndex].correctAnswer),
+                          child: normalOption(
+                              _questions[_currentQuestionIndex].options[3].word,
+                              _questions[_currentQuestionIndex].correctAnswer),
                         ),
                       ],
                     ),
@@ -456,10 +556,12 @@ class PracticePageState extends ConsumerState<PracticePage> {
                     _currentQuestionIndex = 0;
                     _isAnswered = false;
                     _score = 0;
-                   // await fetchQuestions();
-                    ref.read(currentQuestionIndexProvider.notifier).state = _currentQuestionIndex;
+                    // await fetchQuestions();
+                    ref.read(currentQuestionIndexProvider.notifier).state =
+                        _currentQuestionIndex;
                     setState(() {});
-                    print("current index $_currentQuestionIndex, isAnswered $_isAnswered, score $_score");
+                    print(
+                        "current index $_currentQuestionIndex, isAnswered $_isAnswered, score $_score");
                     reloadPage();
                   },
                   child: const Text("Yes")),
@@ -518,7 +620,8 @@ class PracticePageState extends ConsumerState<PracticePage> {
 
                   AudioPlayer audioPlayer = AudioPlayer();
                   print(soundUrl);
-                  Uri downloadUrl = Uri.parse(await storage.refFromURL(soundUrl).getDownloadURL());
+                  Uri downloadUrl = Uri.parse(
+                      await storage.refFromURL(soundUrl).getDownloadURL());
 
                   await audioPlayer.play(UrlSource(downloadUrl.toString()));
                 },

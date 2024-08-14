@@ -64,11 +64,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 role: 'user',
                 score: 0,
                 rank: 0,
+                dailyGoal: 30,
                 heart: 0,
                 userName: userNameController.text.split('@').first,
                 email: emailController.text.toLowerCase(),
                 savedWords: [],
                 savedPhrases: [],
+                savedLearningTime: [],
                 badge: CardBadge(
                     kinship: false,
                     direction: false,

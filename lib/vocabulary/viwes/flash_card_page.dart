@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:developer' as logger;
 import 'package:audioplayers/audioplayers.dart';
@@ -16,6 +17,9 @@ import 'package:flip_card/flip_card.dart';
 import 'package:lottie/lottie.dart';
 import '../../Phrases/views/category_learning_page.dart';
 import '../../User/user_model.dart';
+import '../../LearningTime/models/learning_time.dart';
+import '../../User/user_provider.dart';
+import '../../commitment_time/Achievement.dart';
 
 class FlashCradPage extends ConsumerStatefulWidget {
   String category;
@@ -43,12 +47,18 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
   Map<String, Map<String, dynamic>> categoryValues = {};
 
   late ConfettiController _controllerCenter;
+  late UserProvider userRepo;
+  late DateTime start;
+  int totalSeconds = 1;
+  int dailyGoalInSeconds = 0;
 
   @override
   void initState() {
-    final userRepo = ref.read(userProvider);
+    start = DateTime.now();
+    userRepo = ref.read(userProvider);
     final vocaProvide = ref.read(vocaProvider);
     final blogProviderObj = ref.read(blogProvider);
+
     //vocaProvide.titleId = widget.category;
     score = userRepo.score;
     vocaProvide.score = score;
@@ -66,14 +76,30 @@ class _FlashCradPageState extends ConsumerState<FlashCradPage>
         ConfettiController(duration: const Duration(seconds: 10));
     lottieController =
         AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _fetchLearningTimeData();
+
+    totalSeconds = userRepo.getUserTodayLearningTime();
+    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+    int timeRemain = dailyGoalInSeconds - totalSeconds;
+    Duration d = new Duration(seconds: timeRemain > 0 ? timeRemain : 1);
+    Timer(d, handleTimeout);
     super.initState();
   }
 
   @override
   dispose() {
+    userRepo.saveUserLearningTime(start, 1);
     _controllerCenter.dispose();
     lottieController.dispose();
     super.dispose();
+  }
+
+  void handleTimeout() {
+    userRepo.popupArchivementPage(context);
+  }
+
+  Future<void> _fetchLearningTimeData() async {
+    await userRepo.getSavedLearningTime(DateTime.now());
   }
 
   // setNewBadge(String category){

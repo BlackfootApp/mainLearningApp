@@ -1,8 +1,14 @@
+import 'dart:async';
+
 import 'package:bfootlearn/Phrases/widgets/card_slider.dart';
 import 'package:bfootlearn/components/custom_appbar.dart';
 import 'package:bfootlearn/riverpod/river_pod.dart';
+import '../../LearningTime/models/learning_time.dart';
+import '../../User/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../commitment_time/Achievement.dart';
 
 class SavedPage extends ConsumerStatefulWidget {
   const SavedPage({super.key});
@@ -12,6 +18,38 @@ class SavedPage extends ConsumerStatefulWidget {
 
 class _SavedPageState extends ConsumerState<SavedPage> {
   int? currentPlayingIndex;
+  late DateTime start;
+  int totalSeconds = 1;
+  int dailyGoalInSeconds = 0;
+
+  late UserProvider userProvide;
+
+  @override
+  void initState() {
+    start = DateTime.now();
+    userProvide = ref.read(userProvider);
+    _fetchLearningTimeData();
+    totalSeconds = userProvide.getUserTodayLearningTime();
+    dailyGoalInSeconds = userProvide.getUserDailyGoalInSeconds();
+    int timeRemain = dailyGoalInSeconds - totalSeconds;
+    Duration d = new Duration(seconds: timeRemain > 0 ? timeRemain : 1);
+    Timer(d, handleTimeout);
+    super.initState();
+  }
+
+  void handleTimeout() {
+    userProvide.popupArchivementPage(context);
+  }
+
+  Future<void> _fetchLearningTimeData() async {
+    await userProvide.getSavedLearningTime(DateTime.now());
+  }
+
+  @override
+  dispose() {
+    userProvide.saveUserLearningTime(start, 5);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

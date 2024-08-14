@@ -47,30 +47,31 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         if (!isExists) {
           await userProvide.createUserInDb(
               UserModel(
-                name: userCredential.user!.displayName ?? emailController.text,
-                uid: userCredential.user!.uid,
-                imageUrl: userCredential.user!.photoURL ?? '',
-                role: 'user',
-                score: 0,
-                rank: 0,
-                heart: 0,
-                userName: emailController.text.split('@').first,
-                email: emailController.text,
-                badge: CardBadge(
-                    kinship: false,
-                    direction: false,
-                    classroom: false,
-                    time: false,
-                    weather: false),
-                joinedDate: DateTime.now().toString(),
-                savedWords: [],
-                savedPhrases: [],
-              ),
+                  name:
+                      userCredential.user!.displayName ?? emailController.text,
+                  uid: userCredential.user!.uid,
+                  imageUrl: userCredential.user!.photoURL ?? '',
+                  role: 'user',
+                  score: 0,
+                  rank: 0,
+                  dailyGoal: 30,
+                  heart: 0,
+                  userName: emailController.text.split('@').first,
+                  email: emailController.text,
+                  badge: CardBadge(
+                      kinship: false,
+                      direction: false,
+                      classroom: false,
+                      time: false,
+                      weather: false),
+                  joinedDate: DateTime.now().toString(),
+                  savedWords: [],
+                  savedPhrases: [],
+                  savedLearningTime: []),
               userCredential.user!.uid);
           print("user is created with uid ${userCredential.user!.uid}");
-        }else{
+        } else {
           print("user is exist with uid ${userCredential.user!.uid}");
-
         }
       }
     } on FirebaseAuthException catch (e) {

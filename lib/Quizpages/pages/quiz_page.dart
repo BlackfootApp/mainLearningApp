@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:bfootlearn/Phrases/models/card_data.dart';
 import 'package:bfootlearn/Phrases/models/question_model.dart';
@@ -5,7 +7,10 @@ import 'package:bfootlearn/components/color_file.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../LearningTime/models/learning_time.dart';
 import '../../Phrases/provider/mediaProvider.dart';
+import '../../User/user_provider.dart';
+import '../../commitment_time/Achievement.dart';
 import '../../riverpod/river_pod.dart';
 import 'quiz_result_page.dart';
 
@@ -25,12 +30,28 @@ class _QuizPageState extends ConsumerState<QuizPage> {
   List<String> selectedSeries = [];
   late AudioPlayer player = ref.watch(audioPlayerProvider);
   bool isPlaying = false;
+  late DateTime start;
+  int totalSeconds = 1;
+  int dailyGoalInSeconds = 0;
+  late UserProvider userRepo;
 
   @override
   void initState() {
+    start = DateTime.now();
+    userRepo = ref.read(userProvider);
+    _fetchLearningTimeData();
+    totalSeconds = userRepo.getUserTodayLearningTime();
+    dailyGoalInSeconds = userRepo.getUserDailyGoalInSeconds();
+    int timeRemain = dailyGoalInSeconds - totalSeconds;
+    Duration d = new Duration(seconds: timeRemain > 0 ? timeRemain : 1);
+    Timer(d, handleTimeout);
     super.initState();
     _isQuestionAnswered = [];
     _showSeriesSelectionDialog();
+  }
+
+  void handleTimeout() {
+    userRepo.popupArchivementPage(context);
   }
 
   Future<void> _showSeriesSelectionDialog() async {
@@ -213,6 +234,10 @@ class _QuizPageState extends ConsumerState<QuizPage> {
     );
   }
 
+  Future<void> _fetchLearningTimeData() async {
+    await userRepo.getSavedLearningTime(DateTime.now());
+  }
+
   void updateIsQuestionAnswered() {
     setState(() {
       _isQuestionAnswered = List.generate(
@@ -237,6 +262,7 @@ class _QuizPageState extends ConsumerState<QuizPage> {
                   await player.stop();
                 }
                 isPlaying = false;
+                userRepo.saveUserLearningTime(start, 3);
                 Navigator.of(context).pop(true);
               },
               child: const Text("Yes"),

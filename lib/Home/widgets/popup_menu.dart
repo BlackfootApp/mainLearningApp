@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bfootlearn/login/views/change_password.dart';
 import 'package:bfootlearn/notifications/notification_page.dart';
+import 'package:bfootlearn/commitment_time/learningGoal_page.dart';
 import 'package:bfootlearn/Home/views/ack_page.dart';
 
 class CustomPopupMenu extends StatelessWidget {
@@ -33,6 +34,12 @@ class CustomPopupMenu extends StatelessWidget {
           MaterialPageRoute(builder: (context) => const Acknowledegement()),
         );
         break;
+      case 'learningGoal':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const LearningGoalPage()),
+        );
+        break;  
     }
   }
 
@@ -63,6 +70,17 @@ class CustomPopupMenu extends StatelessWidget {
               ),
             ),
           ),
+          const PopupMenuItem<String>(
+            value: 'learningGoal',
+            child: ListTile(
+              leading: Icon(Icons.workspace_premium, color: Color(0xff6562df)),
+              title: Text(
+                'Learning Goal',
+                style: TextStyle(color: Color(0xff6562df)),
+              ),
+            ),
+          ),
+          
           const PopupMenuItem<String>(
             value: 'changePassword',
             child: ListTile(
