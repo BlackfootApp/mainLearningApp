@@ -1,0 +1,36 @@
+@startuml
+
+actor User
+
+User -> QuizPage: Start Quiz
+QuizPage -> Firebase: Fetch Audio
+Firebase --> QuizPage: Return Audio
+
+QuizPage -> BlogProvider: saveQuizResults()
+BlogProvider -> Firebase: saveQuizResultsToFirestore()
+Firebase --> BlogProvider: Confirm Save
+BlogProvider --> QuizPage: Confirm Quiz Results Saved
+
+QuizPage -> LeaderboardProvider: addToLeaderBoard()
+LeaderboardProvider -> Firebase: updateLeaderBoard()
+Firebase --> LeaderboardProvider: Confirm Update
+LeaderboardProvider --> QuizPage: Confirm Leaderboard Updated
+
+QuizPage -> QuizResultPage: Submit Quiz and Navigate to Result
+QuizResultPage -> CircularGraph: Display Circular Graph
+
+QuizResultPage -> Firebase: Fetch Audio
+Firebase --> QuizResultPage: Return Audio
+
+User -> QuizResultList: View Quiz Results
+QuizResultList -> BlogProvider: fetchQuizResultsFromFirebase()
+BlogProvider -> Firebase: fetchQuizResults()
+Firebase --> BlogProvider: Return Quiz Results Data
+BlogProvider --> QuizResultList: Display Quiz Results
+
+QuizResultList -> QuizResultPage: View Detailed Results
+
+QuizResultList -> BarGraph: Display Bar Graph
+BarGraph -> QuizResultList: Return Bar Graph Data
+
+@enduml

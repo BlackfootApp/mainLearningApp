@@ -1,0 +1,24 @@
+$directories = @(
+    "lib/notifications",
+    "lib/Quizpages",
+    "lib/adminProfile",
+    "lib/helper",
+    "lib/components",
+    "lib/login",
+    "lib/Phrases"
+    "lib/main.dart",
+    "lib/Home/widgets/popup_menu.dart",
+)
+
+$results = @()
+foreach ($dir in $directories) {
+    $results += Get-ChildItem -Path $dir -Recurse -Filter *.dart | ForEach-Object {
+        & "C:\Users\AISHA\AppData\Roaming\Python\Python311\Scripts\lizard" $_.FullName
+    }
+}
+
+# Save results to a file
+$results | Out-File -FilePath "lizard_results.txt"
+
+# Print results to the console (optional)
+$results
