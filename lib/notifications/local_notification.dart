@@ -9,14 +9,14 @@ class LocalNotifications {
       _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   static final onClickNotification = BehaviorSubject<String>();
 
-// on tap on any notification
+  // Handle notification tap
   static void onNotificationTap(NotificationResponse notificationResponse) {
     onClickNotification.add(notificationResponse.payload!);
   }
 
-// initialize the local notifications
+  // Initialize the local notifications
   static Future init({bool initScheduled = false}) async {
-    // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+    // Initialize the plugin. Add app_icon as a drawable resource to Android
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     final DarwinInitializationSettings initializationSettingsDarwin =
@@ -30,10 +30,14 @@ class LocalNotifications {
             android: initializationSettingsAndroid,
             iOS: initializationSettingsDarwin,
             linux: initializationSettingsLinux);
-    _flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onDidReceiveNotificationResponse: onNotificationTap,
-        onDidReceiveBackgroundNotificationResponse: onNotificationTap);
 
+    await _flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: onNotificationTap,
+      onDidReceiveBackgroundNotificationResponse: onNotificationTap,
+    );
+
+    // Initialize timezone data if required
     if (initScheduled) {
       tz.initializeTimeZones();
       final locationName = await FlutterNativeTimezone.getLocalTimezone();
@@ -41,8 +45,13 @@ class LocalNotifications {
     }
   }
 
-  // to schedule a local notification
-  Future showScheduleNotification({
+  // Cancel all scheduled notifications
+  static Future<void> cancelAllNotifications() async {
+    await _flutterLocalNotificationsPlugin.cancelAll();
+  }
+
+  // Show a scheduled notification
+  Future<void> showScheduleNotification({
     required String title,
     required String body,
     required String payload,
@@ -54,16 +63,16 @@ class LocalNotifications {
       title,
       body,
       _scheduleDaily(scheduledTimeHour, scheduledTimeMinute),
-      payload: payload,
       const NotificationDetails(
           android: AndroidNotificationDetails(
-        'channel 3',
-        'your channel name',
-        channelDescription: 'your channel description',
+        'channel_3',
+        'Your Channel Name',
+        channelDescription: 'Your channel description',
         importance: Importance.max,
         priority: Priority.high,
         ticker: 'ticker',
       )),
+      payload: payload,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
@@ -71,8 +80,45 @@ class LocalNotifications {
     );
   }
 
+  // Helper function to schedule notifications at a specific time
+  static tz.TZDateTime _nextInstanceOfTime(int hour, int minute, int second) {
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    tz.TZDateTime scheduledDate = tz.TZDateTime(
+        tz.local, now.year, now.month, now.day, hour, minute, second);
+
+    // If the scheduled time is before now, schedule for the next day
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+    return scheduledDate;
+  }
+
+  // Schedule a daily reminder
+  static Future<void> scheduleDailyReminder(
+      int hour, int minute, int second) async {
+    await _flutterLocalNotificationsPlugin.zonedSchedule(
+      0, // Notification ID
+      'Study Reminder',
+      'Time to continue your learning!',
+      _nextInstanceOfTime(hour, minute, second), // Next trigger time
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'daily_reminder_channel',
+          'Daily Reminder',
+          channelDescription: 'Daily learning reminder notification',
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time, // Repeats daily
+    );
+  }
+
+  // Helper function to return next scheduled time for daily notification
   tz.TZDateTime _scheduleDaily(int hour, int minute) {
-    final now = tz.TZDateTime.now(tz.local);
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     tz.TZDateTime scheduledDate = tz.TZDateTime(
       tz.local,
       now.year,
@@ -82,9 +128,11 @@ class LocalNotifications {
       minute,
     );
 
+    // If the scheduled time has passed for today, schedule for the next day
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
+
     return scheduledDate;
   }
 }
