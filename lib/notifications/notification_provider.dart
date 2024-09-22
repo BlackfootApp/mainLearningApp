@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'local_notification.dart';
 
 DateTime curTime = DateTime.now();
 
@@ -35,8 +36,19 @@ class NotificationProvider extends ChangeNotifier {
     await prefs.setDouble('commitedTime', _commitedTime);
   }
 
+  // Modified to cancel or schedule notifications
   void toggleReminderMode() {
     _isReminderOn = !_isReminderOn;
+
+    if (!_isReminderOn) {
+      // Cancel all notifications when reminder is turned off
+      LocalNotifications.cancelAllNotifications();
+    } else {
+      // Schedule the reminder when turned on
+      LocalNotifications.scheduleDailyReminder(
+          _remindTimeHr, _remindTimeMin, _remindTimeSec);
+    }
+
     saveSettings();
     notifyListeners();
   }

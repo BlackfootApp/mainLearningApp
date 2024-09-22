@@ -1,0 +1,44 @@
+@startuml
+actor User
+
+User -> EditCategoryPage : Open Edit Category Page
+activate EditCategoryPage
+
+EditCategoryPage -> Firebase : Fetch Phrases
+Firebase --> EditCategoryPage : Return Phrases List
+EditCategoryPage -> ExistingConversationsListView : Display Phrases
+
+User -> EditCategoryPage : Search or Filter Phrases
+EditCategoryPage -> Firebase : Fetch Filtered Phrases
+Firebase --> EditCategoryPage : Return Filtered Phrases
+EditCategoryPage -> ExistingConversationsListView : Update Phrases List
+
+User -> ExistingConversationsListView : Select a Phrases
+ExistingConversationsListView -> Firebase : Play Audio
+Firebase --> ExistingConversationsListView : Return Audio File
+ExistingConversationsListView -> showDialogConversation : Open Dialog (Add/Update/Delete)
+activate showDialogConversation
+
+showDialogConversation -> RecordingAudioContainer : Record/Play Audio
+RecordingAudioContainer -> FlutterSoundMethods : Start/Stop Recording or Playback
+FlutterSoundMethods -> Firebase : Upload Audio/File to Firebase Storage
+activate Firebase
+Firebase --> showDialogConversation : Return Audio File URL
+deactivate Firebase
+
+showDialogConversation -> ConversationFunctions : Perform Action (Add/Update/Delete Phrases)
+activate ConversationFunctions
+ConversationFunctions -> Firebase : Interact with Firestore (Add/Update/Delete Document)
+Firebase --> showDialogConversation : Confirm Action
+deactivate ConversationFunctions
+
+showDialogConversation --> ExistingConversationsListView : Refresh Phrases in List
+deactivate showDialogConversation
+
+User -> ExistingConversationsListView : Export Phrases
+ExistingConversationsListView -> showDialogExportBatch : Open Export Dialog
+activate showDialogExportBatch
+showDialogExportBatch --> Firebase : Export Data
+deactivate showDialogExportBatch
+
+@enduml

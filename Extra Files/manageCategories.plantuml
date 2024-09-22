@@ -1,0 +1,42 @@
+@startuml
+actor User
+
+User -> AdminPage : Open Admin Page
+activate AdminPage
+
+AdminPage -> Firebase : Fetch Categories
+Firebase --> AdminPage : Return Categories List
+AdminPage -> ExistingCategoriesListview : Display Categories
+
+User -> AdminPage : Search for a Category
+AdminPage -> Firebase : Fetch Filtered Categories
+Firebase --> AdminPage : Return Filtered Categories
+AdminPage -> ExistingCategoriesListview : Update Categories List
+
+User -> AdminPage : Update Category
+AdminPage -> showDialogCategory : Open Dialog (Add Category)
+activate showDialogCategory
+
+ExistingCategoriesListview -> showDialogCategory : Open Dialog (Update/Delete Category)
+activate showDialogCategory
+
+showDialogCategory -> Device : Select Image/File
+activate Device
+Device --> showDialogCategory : Return Selected File
+deactivate Device
+
+showDialogCategory -> Firebase : Upload Image/File to Firebase Storage
+activate Firebase
+Firebase --> showDialogCategory : Return File URL
+deactivate Firebase
+
+showDialogCategory -> CategoryFunctions : Perform Action (Add/Update/Delete Category)
+activate CategoryFunctions
+CategoryFunctions -> Firebase : Interact with Firestore (Add/Update/Delete Document)
+Firebase --> CategoryFunctions : Confirm Action
+deactivate CategoryFunctions
+
+showDialogCategory --> ExistingCategoriesListview : Refresh Categories List
+deactivate showDialogCategory
+
+@enduml

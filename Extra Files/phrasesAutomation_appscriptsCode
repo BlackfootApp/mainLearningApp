@@ -1,7 +1,9 @@
 // Appscripts Link: https://script.google.com/home
 // Google sheets Link: https://docs.google.com/spreadsheets/d/1MZX87p_WeyebK7hl-rKWwcIl92o02tw5k-fyI4hhnxc/edit?gid=0#gid=0
-// Open browser through Blackfoot account
+// Open browser through Blackfoot account - blackfootapp@gmail.com
 // Duplicate file of automation code
+/* DO NOT EXECUTE THE AUTOMATION CODE WHICH MAY LEAD 
+TO DELETION OF THE UPDATED DATA FROM ADMIN INTERFACE */
 
 function syncData() {
     try {

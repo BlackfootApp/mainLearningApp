@@ -1,0 +1,31 @@
+@startuml
+actor User
+
+User -> AdminAccessPage : Open Admin Access Page
+activate AdminAccessPage
+
+AdminAccessPage -> Firebase : Fetch Admin List
+Firebase --> AdminAccessPage : Return Admin List
+
+AdminAccessPage -> Firebase : Fetch Filtered User List
+Firebase --> AdminAccessPage : Return Filtered List
+
+User -> AdminAccessPage : Grant Admin Access
+AdminAccessPage -> showGrantAccessDialog : Open Grant Access Dialog
+activate showGrantAccessDialog
+
+showGrantAccessDialog -> Firebase : Update Admin Access in Firebase
+Firebase --> showGrantAccessDialog : Confirm Admin Access Granted
+showGrantAccessDialog --> AdminAccessPage : Refresh Admin/User List
+deactivate showGrantAccessDialog
+
+User -> AdminAccessPage : Remove Admin Access
+AdminAccessPage -> showDialogRemoveAdminAccess : Open Remove Access Dialog
+activate showDialogRemoveAdminAccess
+
+showDialogRemoveAdminAccess -> Firebase : Update Admin Access in Firebase
+Firebase --> showDialogRemoveAdminAccess : Confirm Admin Access Removed
+showDialogRemoveAdminAccess --> AdminAccessPage : Refresh Admin/User List
+deactivate showDialogRemoveAdminAccess
+
+@enduml

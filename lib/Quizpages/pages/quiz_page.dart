@@ -379,8 +379,8 @@ class _QuizPageState extends ConsumerState<QuizPage> {
           children: [
             Text(
               question.isAudioTypeQuestion
-                  ? "Match the audio with the corresponding blackfoot text?"
-                  : "Select Blackfoot Translation for: ${question.questionText.split('|')[0]}",
+                  ? "Match the audio with the corresponding Blackfoot text?"
+                  : "Select Blackfoot translation for: ${question.questionText.split('|')[0]}",
               style: const TextStyle(
                 fontSize: 24.0,
                 fontWeight: FontWeight.bold,
@@ -410,17 +410,19 @@ class _QuizPageState extends ConsumerState<QuizPage> {
             SizedBox(height: question.isAudioTypeQuestion ? 0 : 15.0),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: buildRadioOptionsList(question.options),
+              children: buildRadioOptionsList(question),
             ),
             if (question.showCorrectAnswer)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
                   "Correct Answer: ${question.correctAnswer}",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
-                    color: green,
+                    color: question.selectedAnswer == question.correctAnswer
+                        ? green
+                        : red,
                   ),
                 ),
               ),
@@ -437,19 +439,19 @@ class _QuizPageState extends ConsumerState<QuizPage> {
     );
   }
 
-  List<Widget> buildRadioOptionsList(List<String> options) {
-    return options.map((option) {
+  List<Widget> buildRadioOptionsList(Question question) {
+    return question.options.map((option) {
       return RadioListTile<String>(
         title: Text(
           option,
           style: const TextStyle(fontSize: 18.0, color: Colors.black),
         ),
         value: option,
-        groupValue: quizQuestions[_currentIndex].selectedAnswer,
+        groupValue: question.selectedAnswer,
         onChanged: (value) {
           setState(() {
-            if (!quizQuestions[_currentIndex].showCorrectAnswer) {
-              quizQuestions[_currentIndex].selectedAnswer = value!;
+            if (!question.showCorrectAnswer) {
+              question.selectedAnswer = value!;
               _isSubmitButtonEnabled = true;
             }
           });

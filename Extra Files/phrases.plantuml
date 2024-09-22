@@ -1,0 +1,41 @@
+@startuml
+
+actor User
+
+User -> SentenceHomePage: Open Sentence Home Page
+
+SentenceHomePage -> BlogProvider: getSeriesNamesFromFirestore()
+BlogProvider -> Firebase: fetchSeriesNamesFromFirestore()
+Firebase --> BlogProvider: Return Series Names
+BlogProvider --> SentenceHomePage: Display Series Names
+
+SentenceHomePage -> BlogProvider: getSavedPhrases()
+BlogProvider -> Firebase: fetchSavedPhrasesFromFirestore()
+Firebase --> BlogProvider: Return Saved Phrases
+BlogProvider --> SentenceHomePage: Display Saved Phrases
+
+SentenceHomePage -> BlogProvider: fetchAllData()
+BlogProvider -> Firebase: fetchAllDataFromFirestore()
+Firebase --> BlogProvider: Return All Data
+BlogProvider --> SentenceHomePage: Display All Data
+
+SentenceHomePage -> CategoryLearningPage: Open Category Learning Page
+CategoryLearningPage -> BlogProvider: toggleSavedPhrase()
+BlogProvider -> Firebase: updateSavedPhraseStatus()
+Firebase --> BlogProvider: Confirm Update
+BlogProvider --> CategoryLearningPage: Update UI
+
+CategoryLearningPage -> Firebase: Fetch Audio File
+Firebase --> CategoryLearningPage: Return Audio
+
+SentenceHomePage -> SavedPhrases: Open Saved Phrases Page
+SavedPhrases -> BlogProvider: toggleSavedPhrase()
+BlogProvider -> Firebase: updateSavedPhraseStatus()
+Firebase --> BlogProvider: Confirm Update
+BlogProvider --> SavedPhrases: Update UI
+
+SentenceHomePage -> StoriesPage: Open Stories Page
+StoriesPage -> Firebase: Fetch Stories Audio
+Firebase --> StoriesPage: Return Stories File
+
+@enduml

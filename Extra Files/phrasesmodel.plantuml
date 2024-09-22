@@ -1,0 +1,30 @@
+@startuml
+class CardData {
+    +String documentId
+    +String englishText
+    +String blackfootText
+    +String blackfootAudio
+    +String seriesName
+}
+@startuml
+class Question {
+    +String questionText
+    +String correctAnswer
+    +List<String> options
+    +String selectedAnswer
+    +bool showCorrectAnswer
+    +bool isAudioTypeQuestion
+    +String seriesType
+}
+
+class Quiz {
+    +Timestamp dateSubmitted
+    +int quizScore
+    +int totalPoints
+    +List<Question> questionSet
+}
+
+Quiz --> Question : contains
+@enduml
+
+
