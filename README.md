@@ -1,7 +1,17 @@
 # I'poyit - Blackfoot Language Learning Application
 
 ### Demo Links
-https://drive.google.com/file/d/1Nt7g-39kgIRjSL1-r3Xk-ElZ-DNocBdm/view?usp=sharing https://drive.google.com/file/d/1iGhAEi62jl6BI-P9SxsBjSoeRD0Tseio/view?usp=drive_link  https://drive.google.com/file/d/1NooCD0d5KawUuhWOM7lAyqSmhctcA0FR/view?usp=sharing https://drive.google.com/file/d/10nr82oEVM9hlmm9HCm2KBJbiJS44JLli/view?usp=drive_link https://drive.google.com/file/d/1-qnYDe5IpgJgiDQxLtFCUn407ljpZG9f/view?usp=drive_link https://drive.google.com/file/d/1Nod-q5OMxqBwOT4RTqpVg4yWfYFS874U/view?usp=sharing
+Admin Module: https://drive.google.com/file/d/1Nt7g-39kgIRjSL1-r3Xk-ElZ-DNocBdm/view?usp=sharing
+
+Login and Notification: https://drive.google.com/file/d/1NooCD0d5KawUuhWOM7lAyqSmhctcA0FR/view?usp=sharing 
+
+Home|User Profile|Vocabulary Module: https://drive.google.com/file/d/1iGhAEi62jl6BI-P9SxsBjSoeRD0Tseio/view?usp=drive_link 
+ 
+Leaderboard: https://drive.google.com/file/d/10nr82oEVM9hlmm9HCm2KBJbiJS44JLli/view?usp=drive_link 
+
+Discussion Forum: https://drive.google.com/file/d/1-qnYDe5IpgJgiDQxLtFCUn407ljpZG9f/view?usp=drive_link
+ 
+Phrases Module: https://drive.google.com/file/d/1Nod-q5OMxqBwOT4RTqpVg4yWfYFS874U/view?usp=sharing
 
 ### Abstract
 Preserving endangered languages is essential for maintaining cultural identity. Blackfoot is categorized as endangered, with nearly 2,900 speakers remaining. Existing solutions for preserving Blackfoot lack engagement, accessibility, community learning, and gamified experiences. To address this, we developed “I’poyít – Blackfoot Language Learning Application,” a cross-platform app designed to facilitate learning and preservation. In collaboration with the University of Montana, the application features content from researchers and linguists.
